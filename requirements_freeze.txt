@@ -1,0 +1,8 @@
+box2d-py==2.3.8
+cloudpickle==2.2.1
+gym==0.26.2
+gym-notices==0.0.8
+importlib-metadata==6.8.0
+numpy==1.25.2
+opencv-python==4.8.0.76
+zipp==3.16.2

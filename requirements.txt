@@ -1,0 +1,3 @@
+opencv-python==4.8.0.76
+box2d-py==2.3.8
+gym==0.26.2
