@@ -8,8 +8,22 @@ pip install -r requirements_freeze.txt
 ````
 
 
-Use pytorch for NN.
+Objetivo: agente controlável por teclado para navegar em um abiente com obstáculos,
+usando laser. => visualizar tanto visão global do mundo, quanto a visão de laser.
+
+A Fazer:
+- Criar um mundo com obstáculos e renderizar.
+- Criar um agente controlável que se move nesse mundo
+- Identificar colisões.
+- Episódios => colisão e chegar no objetivo.
+- Laser
 
 Ideia inicial:
 - Rodar um playground que permita controlar o agente.
 - Montar o ambiente de treinamento para navegacao.
+
+Sensing:
+- Ver objeto (perfeito) e obstáculos (laser).
+
+Navigation simulator:
+- Agente, goal, obstáculos.
