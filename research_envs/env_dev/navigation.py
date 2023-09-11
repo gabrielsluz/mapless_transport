@@ -20,8 +20,7 @@ def key_to_action(key):
     return action
 
 def render():
-    range_l, type_l, point_l = world.get_laser_readings()
-    scene_buffer.PushFrame(world.drawToBufferWithLaser(point_l))
+    scene_buffer.PushFrame(world.drawToBufferWithLaser())
     scene_buffer.Draw()
     cv2.waitKey(1)
 

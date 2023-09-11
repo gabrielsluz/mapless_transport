@@ -12,11 +12,7 @@ Objetivo: agente controlável por teclado para navegar em um abiente com obstác
 usando laser. => visualizar tanto visão global do mundo, quanto a visão de laser.
 
 A Fazer:
-- Criar um mundo com obstáculos e renderizar.
-- Criar um agente controlável que se move nesse mundo
-- Identificar colisões.
-- Episódios => colisão e chegar no objetivo.
-- Laser
+- Criar env para RL.
 
 Ideia inicial:
 - Rodar um playground que permita controlar o agente.
