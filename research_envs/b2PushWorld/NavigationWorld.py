@@ -6,9 +6,11 @@ from Box2D import (
 import numpy as np
 import cv2
 import random
+import dataclasses
 
-from research_envs.b2PushWorld.Obstacle import CircleObs, RectangleObs
+from research_envs.b2PushWorld.Obstacle import CircleObs, RectangleObs, PolygonalObs
 from research_envs.b2PushWorld.Agent import Agent
+
 
 # ---------- For handling collisions ----------
 """
@@ -28,7 +30,6 @@ class NavContactListener(b2ContactListener):
         if 'agent' in type_l and 'obstacle' in type_l:
             self.simulator.agent_collided += 1
 
-
 # ---------- For reseting without overlapping ----------
 class CheckOverlapCallback(b2QueryCallback):
     def __init__(self):
@@ -41,7 +42,6 @@ class CheckOverlapCallback(b2QueryCallback):
 
     def reset(self):
         self.overlapped = False
-
 
 # ---------- Laser rangefinder ----------
 class LaserHit:
@@ -80,8 +80,23 @@ class RayCastClosestCallback(b2RayCastCallback):
         return fraction
 
 
+@dataclasses.dataclass
+class NavigationWorldConfig:
+    # ----------- World configuration -----------
+    width: float = 50
+    height: float = 50
+    pixels_per_meter: int = 20
+    # Obstacles
+    obstacle_l: list = dataclasses.field(default_factory=list)
+    # Laser
+    ang_min: float = -b2_pi # start angle of the scan [rad]
+    ang_max: float = b2_pi # end angle of the scan [rad]
+    n_rays: int = 16
+    range_max: float = 4.0 # maximum range of the sensor [m]
+
+
 class NavigationWorld:
-    def __init__(self):
+    def __init__(self, config: NavigationWorldConfig):
         # ----------- World configuration -----------
         self.world = b2World(gravity=(0, 0.0), doSleep=False)
         # the timestep is used to simulate discrete steps through the
@@ -91,15 +106,29 @@ class NavigationWorld:
         self.vel_iterator = 6
         self.pos_iterator = 2
         # World dimensions in meters
-        self.width = 50
-        self.height = 50
+        self.width = config.width
+        self.height = config.height
 
         # Obstacles
-        self.obstacle_l = [
-            CircleObs(simulator=self, x = 5, y = 5, radius=2.0),
-            CircleObs(simulator=self, x = 35, y = 35, radius=2.0),
-            RectangleObs(simulator=self, height=10, width=2, x=25, y=25),
-        ]
+        self.obstacle_l = []
+        for obj_spec in config.obstacle_l:
+            if obj_spec['name'] == 'Circle':
+                self.obstacle_l.append(
+                    CircleObs(
+                        simulator=self, x=obj_spec['pos'][0], y=obj_spec['pos'][1], 
+                        radius=obj_spec['radius']))
+            elif obj_spec['name'] == 'Rectangle':
+                self.obstacle_l.append(
+                    RectangleObs(
+                        simulator=self, x=obj_spec['pos'][0], y=obj_spec['pos'][1], 
+                        height=obj_spec['height'], width=obj_spec['width']))
+            elif obj_spec['name'] == 'Polygon':
+                self.obstacle_l.append(
+                    PolygonalObs(
+                        simulator=self, x=obj_spec['pos'][0], y=obj_spec['pos'][1],
+                        vertices=obj_spec['vertices']))
+            else:
+                raise ValueError('Unknown object type')
 
         # Agent
         self.agent = Agent(
@@ -117,10 +146,16 @@ class NavigationWorld:
         self.world.contactListener = self.contactListener
         self.agent_collided = 0
 
+        # Laser
+        self.ang_min = config.ang_min
+        self.ang_max = config.ang_max
+        self.n_rays = config.n_rays
+        self.range_max = config.range_max
+
         # ----------- Draw configuration -----------
-        self.pixels_per_meter = 20
-        self.screen_width = self.width * self.pixels_per_meter
-        self.screen_height = self.height * self.pixels_per_meter
+        self.pixels_per_meter = config.pixels_per_meter
+        self.screen_width = int(self.width * self.pixels_per_meter)
+        self.screen_height = int(self.height * self.pixels_per_meter)
 
         # Reset
         self.reset()
@@ -165,12 +200,7 @@ class NavigationWorld:
 
     # ----------- Laser Sensor -----------
     def get_laser_readings(self):
-        # Params:
-        ang_min = -b2_pi # start angle of the scan [rad]
-        ang_max = b2_pi # end angle of the scan [rad]
-        rays = 16 # indirect parameter, not used in the code
-        ang_inc = (ang_max - ang_min) / rays
-        range_max = 4.0 # maximum range of the sensor [m]
+        ang_inc = (self.ang_max - self.ang_min) / self.n_rays
 
         range_l = []
         type_l = []
@@ -178,11 +208,11 @@ class NavigationWorld:
         point1 = self.agent.agent_rigid_body.position
         agent_ang = self.agent.agent_rigid_body.angle
 
-        ray_ang = ang_min
-        while ray_ang <= ang_max:
+        ray_ang = self.ang_min
+        while ray_ang <= self.ang_max:
             ang = ray_ang + agent_ang
             ray_ang += ang_inc
-            point2 = point1 + range_max * b2Vec2(np.cos(ang), np.sin(ang))
+            point2 = point1 + self.range_max * b2Vec2(np.cos(ang), np.sin(ang))
             callback = RayCastClosestCallback()
             self.world.RayCast(callback, point1, point2)
 
@@ -197,7 +227,6 @@ class NavigationWorld:
         return range_l, type_l, point_l
 
     # ----------- Draw functions -----------
-
     def worldToScreen(self, position):
         return (int(position[0] * self.pixels_per_meter), int(position[1] * self.pixels_per_meter))
 
@@ -218,9 +247,9 @@ class NavigationWorld:
             cv2.circle(screen, screen_pos, int(self.agent.agent_radius*self.pixels_per_meter), (0, 0, 1, 0), -1)
         return screen
 
-    def drawToBufferWithLaser(self, laser_point_l):
+    def drawToBufferWithLaser(self):
         screen = self.drawToBuffer()
-        # Draw laser
+        _, _, laser_point_l = self.get_laser_readings()
         screen_pos = self.worldToScreen(self.agent.GetPositionAsList())
         for point in laser_point_l:
             # if point is not None:
