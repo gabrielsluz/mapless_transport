@@ -13,6 +13,8 @@ usando laser. => visualizar tanto visão global do mundo, quanto a visão de las
 
 A Fazer:
 - Criar env para RL.
+- Testar env no playground
+- Implementar DQN com StableBaselines.
 
 Ideia inicial:
 - Rodar um playground que permita controlar o agente.

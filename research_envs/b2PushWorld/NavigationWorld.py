@@ -178,6 +178,9 @@ class NavigationWorld:
 
     def did_agent_reach_goal(self):
         return (self.goal - self.agent.agent_rigid_body.position).length < self.goal_tolerance
+    
+    def agent_to_goal_vector(self):
+        return self.goal - self.agent.agent_rigid_body.position
 
     def gen_non_overlapping_position(self, radius):
         callback = CheckOverlapCallback()
