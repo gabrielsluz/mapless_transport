@@ -12,9 +12,10 @@ Objetivo: agente controlável por teclado para navegar em um abiente com obstác
 usando laser. => visualizar tanto visão global do mundo, quanto a visão de laser.
 
 A Fazer:
-- Criar env para RL.
-- Testar env no playground
-- Implementar DQN com StableBaselines.
+- Visualizar política final.
+- Código de Eval.
+- Reward Engeneering
+- Testar PPO
 
 Ideia inicial:
 - Rodar um playground que permita controlar o agente.

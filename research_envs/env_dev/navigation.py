@@ -28,18 +28,25 @@ def render():
 if __name__ == "__main__":
     scene_buffer = CvDrawBuffer(window_name="Simulation", resolution=(1024,1024))
     config = NavigationEnvConfig(
-        world_config= NavigationWorldConfig(
-            obstacle_l = [
-                {'name':'Circle', 'pos':(5.0, 5.0), 'radius':2.0},
-                {'name':'Circle', 'pos':(35.0, 35.0), 'radius':2.0},
-                {'name':'Circle', 'pos':(5.0, 35.0), 'radius':4.0},
-                {'name':'Rectangle', 'pos':(25.0, 25.0), 'height':10.0, 'width':2.0}
-            ],
+        max_steps=200,
+        world_config=NavigationWorldConfig(
+            obstacle_l = [],
             n_rays = 16,
-            range_max = 8.0
-        ),
-        max_steps=100
-    )
+            range_max = 4.0
+        ))
+    # config = NavigationEnvConfig(
+    #     world_config= NavigationWorldConfig(
+    #         obstacle_l = [
+    #             {'name':'Circle', 'pos':(5.0, 5.0), 'radius':2.0},
+    #             {'name':'Circle', 'pos':(35.0, 35.0), 'radius':2.0},
+    #             {'name':'Circle', 'pos':(5.0, 35.0), 'radius':4.0},
+    #             {'name':'Rectangle', 'pos':(25.0, 25.0), 'height':10.0, 'width':2.0}
+    #         ],
+    #         n_rays = 16,
+    #         range_max = 8.0
+    #     ),
+    #     max_steps=100
+    # )
     env = NavigationEnv(config)
     print('Env created.')
     

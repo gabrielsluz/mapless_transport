@@ -21,7 +21,7 @@ class NavigationEnv(gym.Env):
         # Observation: Laser + agent to final goal vector
         n_rays = config.world_config.n_rays
         self.observation_space = spaces.Box(
-            low=0.0, high=1.0, shape=(n_rays+2, ), dtype=np.float32)
+            low=-1.0, high=1.0, shape=(n_rays+2,), dtype=np.float32)
 
         self.max_steps = config.max_steps
         self.step_count = 0
@@ -46,17 +46,21 @@ class NavigationEnv(gym.Env):
         # (observation, reward, terminated, truncated, info)
         self.world.take_action(action)
         observation = self._gen_observation()
+        self.step_count += 1
         
+        info = {'is_success': False}
         reward = self._calc_reward()
         terminated = self.world.did_agent_collide() or self.world.did_agent_reach_goal()
-        truncated = self.step_count >= self.max_steps
-        info = {}
+        if self.world.did_agent_reach_goal(): 
+            info['is_success'] = True
+        truncated = self.step_count > self.max_steps
         return observation, reward, terminated, truncated, info
 
-    def reset(self):
+    def reset(self, seed=None, options=None):
+        super().reset(seed=seed)
         self.world.reset()
         self.step_count = 0
-        return self._gen_observation()
+        return self._gen_observation(), {}
 
     def render(self, mode='human'):
         return self.world.drawToBufferWithLaser()

@@ -212,7 +212,7 @@ class NavigationWorld:
         agent_ang = self.agent.agent_rigid_body.angle
 
         ray_ang = self.ang_min
-        while ray_ang <= self.ang_max:
+        for _ in range(self.n_rays):
             ang = ray_ang + agent_ang
             ray_ang += ang_inc
             point2 = point1 + self.range_max * b2Vec2(np.cos(ang), np.sin(ang))
