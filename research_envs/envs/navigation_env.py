@@ -38,9 +38,9 @@ class NavigationEnv(gym.Env):
         if self.world.did_agent_collide():
             return -1
         elif self.world.did_agent_reach_goal():
-            return 1
+            return 2
         else:
-            return 0
+            return -0.01
 
     def step(self, action):
         # (observation, reward, terminated, truncated, info)
@@ -70,3 +70,40 @@ class NavigationEnv(gym.Env):
 
     def seed(self, seed=None):
         pass
+
+
+"""
+Environment for mixing different NavigationEnv.
+Useful when we want to have different obstacle setups.
+"""
+class NavigationMixEnv(gym.Env):
+    def __init__(
+        self, 
+        config: NavigationEnvConfig = NavigationEnvConfig(), 
+        obstacle_l_dict: dict = {'empty':[]}
+        ):
+        self.env_l = []
+        for key in obstacle_l_dict.keys():
+            config.world_config.obstacle_l = obstacle_l_dict[key]
+            self.env_l.append(NavigationEnv(config))
+        self.action_space = self.env_l[0].action_space
+        self.observation_space = self.env_l[0].observation_space
+        self.cur_env = self.env_l[np.random.randint(len(self.env_l))]
+
+    def step(self, action):
+        return self.cur_env.step(action)
+    
+    def reset(self, seed=None, options=None):
+        self.cur_env = self.env_l[np.random.randint(len(self.env_l))]
+        return self.cur_env.reset(seed=seed, options=options)
+    
+    def render(self, mode='human'):
+        return self.cur_env.render()
+
+    def close(self):
+        pass
+
+    def seed(self, seed=None):
+        pass
+
+    
