@@ -17,15 +17,14 @@ Primeiro, vou deixar o mapless navigation rodando bem.
 - Para quais cenários deveria funcionar? E quais não conseguiria? => dar uma olhada em artigos de mapless navigation.
 - Atingir 100% de sucesso em cenários simples:
     - Definir os mapas:
-        - 4 obstáculos circulares
-        - Corredor
-        - U
-        - G
-        - Aleatório 1
-        - Aleatório 2
-        - Aleatório 3
-        - Complexo 1
-        - COmplexo 2
+        - Simples: Mapas para navegação gulosa.:
+            - 4 círculos
+            - Corredor
+            - Labirinto com um unico caminho
+            - 16 círculos
+            - Esparso 1,2,3
+        - Medium: Mapas com poucos 1-2 passos de roll back => G e U pequenos.
+        - Hard: Mapas para navegação com vários passos de roll back. => G, U
     - Corrigir problema do loop local:
         - Modificar observacao para ter angulo e distancia do goal.
         - Frame stack + ação tomada. => implementar como um Wrapper?

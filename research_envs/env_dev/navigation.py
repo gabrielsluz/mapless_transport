@@ -36,7 +36,11 @@ if __name__ == "__main__":
         ),
         max_steps=200
     )
-    env = NavigationMixEnv(config, obstacle_l_dict)
+    obs_l_dict = {
+        k: obstacle_l_dict[k] 
+        for k in obstacle_l_dict.keys()
+    }
+    env = NavigationMixEnv(config, obs_l_dict)
     # config = NavigationEnvConfig(
     #     world_config= NavigationWorldConfig(
     #         obstacle_l = [
@@ -64,10 +68,9 @@ if __name__ == "__main__":
 
         action = key_to_action(key)
         if action != -1:
-            # print('World update.')
-            # print(world.get_laser_readings())
             observation, reward, terminated, truncated, info = env.step(action)
             render()
+            print('Pos:', env.cur_env.world.agent.agent_rigid_body.position)
             # print(observation)
             print('Reward: ', reward)
             if terminated: 
