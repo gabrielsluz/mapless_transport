@@ -4,7 +4,7 @@ Made thinking of a (50, 50) world.
 
 obstacle_l_dict = {
     # EASY: a greedy agent can easily find a path to the goal.
-    '4_cricles': [
+    '4_circles': [
         {'name':'Circle', 'pos':(17.0, 17.0), 'radius':4.0},
         {'name':'Circle', 'pos':(34.0, 17.0), 'radius':4.0},
         {'name':'Circle', 'pos':(17.0, 34.0), 'radius':4.0},

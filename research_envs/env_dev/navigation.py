@@ -31,10 +31,11 @@ if __name__ == "__main__":
     config = NavigationEnvConfig(
         world_config= NavigationWorldConfig(
             obstacle_l = [],
-            n_rays = 36,
+            n_rays = 4,
             range_max = 8.0
         ),
-        max_steps=200
+        max_steps=200,
+        previous_obs_queue_len=3
     )
     obs_l_dict = {
         k: obstacle_l_dict[k] 
@@ -70,8 +71,8 @@ if __name__ == "__main__":
         if action != -1:
             observation, reward, terminated, truncated, info = env.step(action)
             render()
-            print('Pos:', env.cur_env.world.agent.agent_rigid_body.position)
-            # print(observation)
+            # print('Pos:', env.cur_env.world.agent.agent_rigid_body.position)
+            print(observation)
             print('Reward: ', reward)
             if terminated: 
                 print('Terminated')

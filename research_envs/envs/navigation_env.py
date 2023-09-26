@@ -1,6 +1,7 @@
 import gymnasium as gym
 from gymnasium import spaces
 import numpy as np
+from collections import deque
 
 from research_envs.b2PushWorld.NavigationWorld import NavigationWorld, NavigationWorldConfig
 
@@ -10,6 +11,7 @@ import dataclasses
 class NavigationEnvConfig:
     world_config: NavigationWorldConfig = NavigationWorldConfig()
     max_steps: int = 1000
+    previous_obs_queue_len: int = 0
 
 class NavigationEnv(gym.Env):
     metadata = {'render.modes': ['human']}
@@ -18,21 +20,55 @@ class NavigationEnv(gym.Env):
         self.config = config
         self.world = NavigationWorld(config.world_config)
         self.action_space = spaces.Discrete(8)
+
         # Observation: Laser + agent to final goal vector
         n_rays = config.world_config.n_rays
+        # Observation Queue
+        self.prev_obs_queue = deque(maxlen=config.previous_obs_queue_len)
+        self.prev_action_queue = deque(maxlen=config.previous_obs_queue_len)
+        self.prev_obs_len = config.previous_obs_queue_len * (n_rays+2)
+        self.prev_act_len = config.previous_obs_queue_len
+        self.observation_shape = (
+            n_rays+2 + self.prev_obs_len + self.prev_act_len,
+        )
         self.observation_space = spaces.Box(
-            low=-1.0, high=1.0, shape=(n_rays+2,), dtype=np.float32)
+            low=-np.inf, high=np.inf, shape=self.observation_shape, dtype=np.float32)
 
         self.max_steps = config.max_steps
         self.step_count = 0
 
-    def _gen_observation(self):
+
+    def _gen_current_observation(self):
         range_l, _, _ = self.world.get_laser_readings()
         laser_readings = np.array(range_l) / self.world.range_max
         
         agent_to_goal = self.world.agent_to_goal_vector()
-        agent_to_goal = np.array(agent_to_goal) / agent_to_goal.length
-        return np.concatenate((laser_readings, agent_to_goal))
+        # Calc angle between agent_to_goal and x-axis
+        angle = np.arctan2(agent_to_goal[1], agent_to_goal[0])
+        goal_obs = np.array([
+            angle/np.pi, agent_to_goal.length/25.0
+            ])
+        return np.concatenate((laser_readings, goal_obs))
+    
+    def _gen_observation(self):
+        cur_obs = self._gen_current_observation()
+
+        prev_obs = np.zeros(self.prev_obs_len)
+        aux = []
+        for obs in reversed(self.prev_obs_queue):
+            aux += list(obs)
+        prev_obs[:len(aux)] = aux
+
+        prev_act = np.zeros(self.prev_act_len)
+        aux = [
+            (a+1)/(self.action_space.n+1) # Avoid a = 0
+            for a in reversed(self.prev_action_queue)
+        ]
+        prev_act[:len(aux)] = aux
+
+        obs = np.concatenate([cur_obs, prev_obs, prev_act])
+        self.prev_obs_queue.append(cur_obs)
+        return obs
 
     def _calc_reward(self):
         if self.world.did_agent_collide():
@@ -45,6 +81,7 @@ class NavigationEnv(gym.Env):
     def step(self, action):
         # (observation, reward, terminated, truncated, info)
         self.world.take_action(action)
+        self.prev_action_queue.append(action)
         observation = self._gen_observation()
         self.step_count += 1
         
@@ -60,6 +97,9 @@ class NavigationEnv(gym.Env):
         super().reset(seed=seed)
         self.world.reset()
         self.step_count = 0
+
+        self.prev_action_queue.clear()
+        self.prev_obs_queue.clear()
         return self._gen_observation(), {}
 
     def render(self, mode='human'):
