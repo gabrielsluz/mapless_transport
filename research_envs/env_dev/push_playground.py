@@ -7,9 +7,8 @@ sys.path.append('.')
 
 import cv2
 
-from research_envs.envs.box2D_img_pushing_pose_env import Box2DPushingEnv, Box2DPushingEnvConfig
+from research_envs.envs.pushing_pose_env import PushingEnvConfig, PushingEnv
 from research_envs.b2PushWorld.PushSimulatorPose import PushSimulatorConfig
-# from research_envs.envs.box2D_img_pushing_env import Box2DPushingEnv
 from research_envs.envs.rewards import RewardFunctions
 
 
@@ -27,7 +26,7 @@ def key_to_action(key):
 
 if __name__ == "__main__":
     verbose = True
-    config = Box2DPushingEnvConfig(
+    config = PushingEnvConfig(
         reward_fn_id=RewardFunctions.PROGRESS,
         max_steps=200,
         terminate_obj_dist = 14.0,
@@ -35,7 +34,7 @@ if __name__ == "__main__":
             obj_proximity_radius=14.0,
             objTuple = (
                 # {'name':'Circle', 'radius':2.0},
-                # {'name':'Circle', 'radius':4.0},
+                {'name':'Circle', 'radius':4.0},
                 # {'name':'Circle', 'radius':8.0},
                 # {'name': 'Rectangle', 'height': 5.0, 'width': 5.0},
                 {'name': 'Rectangle', 'height': 10.0, 'width': 5.0},
@@ -46,7 +45,7 @@ if __name__ == "__main__":
             )
         ),
     )
-    env = Box2DPushingEnv(config=config)
+    env = PushingEnv(config=config)
     # for obj in env.push_simulator.obj_l:
     #     print(obj.obj_rigid_body.mass, obj.obj_rigid_body.inertia)
     
@@ -60,10 +59,11 @@ if __name__ == "__main__":
 
         action = key_to_action(key)
         if action != -1:
-            next_state, reward, done, info = env.step(action)
+            next_state, reward, done, truncated, info = env.step(action)
             # print(next_state['aux_info'])
             if verbose:
                 print('Reward: {:.2f} Done: {} Info: {}'.format(reward, done, info))
+                print('Obs: ', next_state)
                 print('Dist to obj: {:.2f} Dist to ori: {:.2f}'.format(
                     env.push_simulator.distToObjective(), env.push_simulator.distToOrientation()))
                 print('Dist to goal: {:.2f}'.format(env.push_simulator.distToObjective()))

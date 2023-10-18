@@ -153,9 +153,15 @@ class PushSimulator:
 
     def distToObjective(self):
         return (self.goal - self.obj.obj_rigid_body.position).length
+    
+    def agentToObjectiveVector(self):
+        return self.goal - self.agent.agent_rigid_body.position
 
     def distToObject(self):
         return (self.agent.agent_rigid_body.position - self.obj.obj_rigid_body.position).length
+    
+    def agentToObjectVector(self):
+        return self.obj.obj_rigid_body.position - self.agent.agent_rigid_body.position
 
     """
     How to calculate the difference between the object and the goal orientation?

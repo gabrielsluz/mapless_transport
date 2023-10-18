@@ -11,6 +11,7 @@ import cv2
 from stable_baselines3 import PPO
 
 def render():
+    # pass
     scene_buffer.PushFrame(env.render())
     scene_buffer.Draw()
     cv2.waitKey(1)
@@ -18,36 +19,24 @@ def render():
 config = NavigationEnvConfig(
     world_config= NavigationWorldConfig(
         obstacle_l = [],
-        n_rays = 24,
+        n_rays = 1,
         range_max = 5.0
     ),
-    max_steps = 200,
-    previous_obs_queue_len = 5
+    max_steps = 300,
+    previous_obs_queue_len = 3
 )
 obs_l_dict = {
     k: obstacle_l_dict[k] 
     for k in [
         'circle_line', 'small_4_circles',
         '4_circles', 'sparse_1', 'sparse_2',
-        '1_circle', '1_rectangle', '1_triangle',
-        #'corridor', 'crooked_corridor',
         '16_circles', '25_circles', '49_circles',
-        # '1_circle', '1_rectangle', '1_triangle',
-        # 'corridor', 'crooked_corridor',
-        # '16_circles', '25_circles', '49_circles',
-        # 'small_U', 'small_G',
-        # 'U', 'G'
-        #'circle_line', 'small_4_circles', 'empty'
-        #'small_4_circles', '16_circles', '25_circles', '49_circles',
-        #'empty', 'circle_line', 'small_4_circles',
-        #'1_circle', '1_rectangle', '1_triangle', 
-        #'4_circles', '16_circles', 'corridor', 'crooked_corridor',
-        #'sparse_1', 'sparse_2'
+        '1_circle', '1_rectangle', '1_triangle',
     ]
 }
 env = NavigationMixEnv(config, obs_l_dict)
 
-model = PPO.load("model_ckp_1")
+model = PPO.load("model_ckp/model_ckp_1")
 print(model.policy)
 
 scene_buffer = CvDrawBuffer(window_name="Simulation", resolution=(1024,1024))

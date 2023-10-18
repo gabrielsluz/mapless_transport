@@ -9,17 +9,37 @@ from research_envs.cv_buffer.CvDrawBuffer import CvDrawBuffer
 
 import cv2
 
+# def key_to_action(key):
+#     action = -1
+#     if key == 97: # a
+#         action = 4
+#     elif key == 115: # s
+#         action = 2
+#     elif key == 100: # d
+#         action = 0
+#     elif key  == 119: # w
+#         action = 6
+#     return action
 def key_to_action(key):
     action = -1
-    if key == 97: # a
-        action = 4
-    elif key == 115: # s
-        action = 2
+    if key == 113: #q
+        action = 5
+    elif key == 119: # w
+        action = 6
+    elif key == 101: # e
+        action = 7
     elif key == 100: # d
         action = 0
-    elif key  == 119: # w
-        action = 6
+    elif key == 99: # c
+        action = 1
+    elif key == 120: # x
+        action = 2
+    elif key == 122: # z
+        action = 3
+    elif key == 97: # a
+        action = 4
     return action
+
 
 def render():
     scene_buffer.PushFrame(env.render())
@@ -31,15 +51,32 @@ if __name__ == "__main__":
     config = NavigationEnvConfig(
         world_config= NavigationWorldConfig(
             obstacle_l = [],
-            n_rays = 4,
-            range_max = 8.0
+            n_rays = 24,
+            range_max = 5.0
         ),
         max_steps=200,
         previous_obs_queue_len=3
     )
     obs_l_dict = {
         k: obstacle_l_dict[k] 
-        for k in obstacle_l_dict.keys()
+        for k in [
+            'circle_line', 'small_4_circles',
+            '4_circles', 'sparse_1', 'sparse_2',
+            '1_circle', '1_rectangle', '1_triangle',
+            #'corridor', 'crooked_corridor',
+            '16_circles', '25_circles', '49_circles',
+            # '1_circle', '1_rectangle', '1_triangle',
+            # 'corridor', 'crooked_corridor',
+            # '16_circles', '25_circles', '49_circles',
+            # 'small_U', 'small_G',
+            # 'U', 'G'
+            #'circle_line', 'small_4_circles', 'empty'
+            #'small_4_circles', '16_circles', '25_circles', '49_circles',
+            #'empty', 'circle_line', 'small_4_circles',
+            #'1_circle', '1_rectangle', '1_triangle', 
+            #'4_circles', '16_circles', 'corridor', 'crooked_corridor',
+            #'sparse_1', 'sparse_2'
+        ]
     }
     env = NavigationMixEnv(config, obs_l_dict)
     # config = NavigationEnvConfig(
@@ -66,22 +103,24 @@ if __name__ == "__main__":
         dt = 1.0 / 60.0 #1.0 / 60.0
         key = 0xFF & cv2.waitKey(int(dt * 1000.0)) # Sets default key = 255
         if key == 27: break # Esc key
-
         action = key_to_action(key)
         if action != -1:
             observation, reward, terminated, truncated, info = env.step(action)
             render()
             # print('Pos:', env.cur_env.world.agent.agent_rigid_body.position)
             print(observation)
+            print(observation.shape)
             print('Reward: ', reward)
             if terminated: 
                 print('Terminated')
             if truncated:
                 print('Truncated')
+            print('Info: ', info)
 
             if env.cur_env.world.did_agent_collide():
                 print('Agent collided with obstacle.')
-                env.reset()
             if env.cur_env.world.did_agent_reach_goal():
                 print('Agent reached goal.')
+
+            if truncated or terminated:
                 env.reset()

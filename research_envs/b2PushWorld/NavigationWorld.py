@@ -10,6 +10,7 @@ import dataclasses
 
 from research_envs.b2PushWorld.Obstacle import CircleObs, RectangleObs, PolygonalObs
 from research_envs.b2PushWorld.Agent import Agent
+from research_envs.b2PushWorld.AgentDirection import AgentDirection
 
 
 # ---------- For handling collisions ----------
@@ -48,6 +49,7 @@ class LaserHit:
     INVALID = 0
     OBSTACLE = 1
     OBJECT = 2
+    AGENT = 3
     
 class RayCastClosestCallback(b2RayCastCallback):
     """This callback finds the closest hit"""
@@ -93,6 +95,8 @@ class NavigationWorldConfig:
     ang_max: float = b2_pi # end angle of the scan [rad]
     n_rays: int = 16
     range_max: float = 4.0 # maximum range of the sensor [m]
+    # Agent
+    agent_type: str = 'discrete'
 
 
 class NavigationWorld:
@@ -131,11 +135,17 @@ class NavigationWorld:
                 raise ValueError('Unknown object type')
 
         # Agent
-        self.agent = Agent(
-            simulator=self, x=30, y=25,
-            radius=1.0,
-            velocity=2.0, forceLength=2.0,
-            totalDirections=8)
+        if config.agent_type == 'discrete':
+            self.agent = Agent(
+                simulator=self, x=30, y=25,
+                radius=1.0,
+                velocity=2.0, forceLength=0.5,
+                totalDirections=8)
+        elif config.agent_type == 'continuous':
+            self.agent = AgentDirection(
+                simulator=self, x=30, y=25,
+                radius=1.0,
+                velocity=2.0, forceLength=0.5)
 
         # Goal
         self.goal = b2Vec2(0,0)
@@ -184,7 +194,7 @@ class NavigationWorld:
 
     def gen_non_overlapping_position(self, radius):
         callback = CheckOverlapCallback()
-        for _ in range(100):
+        for _ in range(300):
             callback.reset()
             x = random.uniform(0, self.width)
             y = random.uniform(0, self.height)
@@ -220,11 +230,57 @@ class NavigationWorld:
             self.world.RayCast(callback, point1, point2)
 
             if callback.hit:
-                range_l.append((point1 - callback.point).length)
-                type_l.append(LaserHit.OBSTACLE)
-                point_l.append(callback.point)
+                body_type = callback.fixture.body.userData['type']
+                if body_type == 'obstacle':
+                    range_l.append((point1 - callback.point).length)
+                    type_l.append(LaserHit.OBSTACLE)
+                    point_l.append(callback.point)
+                elif body_type == 'agent':
+                    range_l.append((point1 - callback.point).length)
+                    type_l.append(LaserHit.AGENT)
+                    point_l.append(callback.point)
+                else:
+                    range_l.append(self.range_max)#range_l.append(-1)
+                    type_l.append(LaserHit.INVALID)
+                    point_l.append(point2)
             else:
-                range_l.append(-1)
+                range_l.append(self.range_max)#range_l.append(-1)
+                type_l.append(LaserHit.INVALID)
+                point_l.append(point2)
+        return range_l, type_l, point_l
+
+    def get_laser_readings_from_point(self, point1):
+        ang_inc = (self.ang_max - self.ang_min) / self.n_rays
+
+        range_l = []
+        type_l = []
+        point_l = []
+        agent_ang = self.agent.agent_rigid_body.angle
+
+        ray_ang = self.ang_min
+        for _ in range(self.n_rays):
+            ang = ray_ang + agent_ang
+            ray_ang += ang_inc
+            point2 = point1 + self.range_max * b2Vec2(np.cos(ang), np.sin(ang))
+            callback = RayCastClosestCallback()
+            self.world.RayCast(callback, point1, point2)
+
+            if callback.hit:
+                body_type = callback.fixture.body.userData['type']
+                if body_type == 'obstacle':
+                    range_l.append((point1 - callback.point).length)
+                    type_l.append(LaserHit.OBSTACLE)
+                    point_l.append(callback.point)
+                elif body_type == 'agent':
+                    range_l.append((point1 - callback.point).length)
+                    type_l.append(LaserHit.AGENT)
+                    point_l.append(callback.point)
+                else:
+                    range_l.append(self.range_max)#range_l.append(-1)
+                    type_l.append(LaserHit.INVALID)
+                    point_l.append(point2)
+            else:
+                range_l.append(self.range_max)#range_l.append(-1)
                 type_l.append(LaserHit.INVALID)
                 point_l.append(point2)
         return range_l, type_l, point_l
@@ -252,6 +308,21 @@ class NavigationWorld:
 
     def drawToBufferWithLaser(self):
         screen = self.drawToBuffer()
+        _, _, laser_point_l = self.get_laser_readings()
+        screen_pos = self.worldToScreen(self.agent.GetPositionAsList())
+        for point in laser_point_l:
+            # if point is not None:
+            screen_point = self.worldToScreen(point)
+            cv2.line(screen, screen_pos, screen_point, (0, 0, 1), 1)
+        return screen
+
+    def drawToBufferObservation(self):
+        # clear previous buffer
+        screen = np.ones(shape=(self.screen_height, self.screen_width, 3), dtype=np.float32)
+        # Draw goal
+        screen_pos = self.worldToScreen(self.goal)
+        cv2.circle(screen, screen_pos, int(self.goal_tolerance*self.pixels_per_meter), (0, 1, 0, 0), -1)
+        # Lasers
         _, _, laser_point_l = self.get_laser_readings()
         screen_pos = self.worldToScreen(self.agent.GetPositionAsList())
         for point in laser_point_l:
