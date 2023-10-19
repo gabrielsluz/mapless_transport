@@ -62,7 +62,7 @@ class PushingEnv(gym.Env):
 
         # keep track of this environment state shape for outer references
         self.state_shape = self.push_simulator.state_shape
-        self.observation_space = spaces.Box(low=-1.0, high=1.0, shape=(4,), dtype=np.float32)
+        self.observation_space = spaces.Box(low=-1.0, high=1.0, shape=(6,), dtype=np.float32)
         self.action_space = spaces.Discrete(self.push_simulator.agent.directions)
         self.max_objective_dist = self.push_simulator.max_dist_obj_goal * 1.2
 
@@ -148,7 +148,14 @@ class PushingEnv(gym.Env):
             angle/np.pi, min(agent_to_obj.length/self.object_distance, 1.0)
         ])
 
-        return np.concatenate((goal_obs, obj_obs), dtype=np.float32)
+        return np.concatenate((
+            goal_obs, 
+            obj_obs, 
+            [
+                self.push_simulator.distToOrientation() / np.pi,
+                (self.push_simulator.obj.obj_rigid_body.angle % (2*np.pi)) / (2*np.pi)
+            ]
+            ), dtype=np.float32)
 
     def step(self, action):
         # return variables

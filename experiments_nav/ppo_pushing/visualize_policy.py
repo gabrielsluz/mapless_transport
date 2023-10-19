@@ -23,13 +23,14 @@ config = PushingEnvConfig(
     push_simulator_config=PushSimulatorConfig(
         obj_proximity_radius=14.0,
         objTuple = (
-            {'name':'Circle', 'radius':4.0},
+            # {'name':'Circle', 'radius':4.0},
+            {'name': 'Rectangle', 'height': 10.0, 'width': 5.0},
         )
     ),
 )
 env = PushingEnv(config=config)
 
-model = PPO.load("model_ckp/model_ckp_1")
+model = PPO.load("model_ckp/model_ckp_11")
 print(model.policy)
 
 # scene_buffer = CvDrawBuffer(window_name="Simulation", resolution=(1024,1024))

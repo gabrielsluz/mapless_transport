@@ -34,12 +34,12 @@ if __name__ == "__main__":
             obj_proximity_radius=14.0,
             objTuple = (
                 # {'name':'Circle', 'radius':2.0},
-                {'name':'Circle', 'radius':4.0},
+                # {'name':'Circle', 'radius':4.0},
                 # {'name':'Circle', 'radius':8.0},
                 # {'name': 'Rectangle', 'height': 5.0, 'width': 5.0},
                 {'name': 'Rectangle', 'height': 10.0, 'width': 5.0},
                 # {'name': 'Rectangle', 'height': 15.0, 'width': 5.0},
-                {'name': 'Polygon', 'vertices': [(5,10), (0,0), (10,0)]},
+                # {'name': 'Polygon', 'vertices': [(5,10), (0,0), (10,0)]},
                 # {'name': 'Polygon', 'vertices': [(2,10), (0,0), (12,0)]},
                 # {'name': 'Polygon', 'vertices': [(0,10), (0,0), (10,0)]},
             )

@@ -2,9 +2,9 @@
 import sys
 sys.path.append('../..')
 
-from research_envs.envs.navigation_env import NavigationEnvConfig, NavigationMixEnv
+from research_envs.b2PushWorld.TransportationWorld import TransportationWorldConfig
+from research_envs.envs.transportation_env import TransportationEnvConfig, TransportationMixEnv
 from research_envs.envs.obstacle_repo import obstacle_l_dict
-from research_envs.b2PushWorld.NavigationWorld import NavigationWorldConfig
 from research_envs.cv_buffer.CvDrawBuffer import CvDrawBuffer
 
 import cv2
@@ -16,27 +16,26 @@ def render():
     scene_buffer.Draw()
     cv2.waitKey(1)
 
-config = NavigationEnvConfig(
-    world_config= NavigationWorldConfig(
+config = TransportationEnvConfig(
+    world_config= TransportationWorldConfig(
         obstacle_l = [],
-        n_rays = 1,
-        range_max = 5.0
+        object_l=[{'name':'Circle', 'radius':4.0}],
+        n_rays = 24,
+        range_max = 5.0,
+        force_length=2.0
     ),
     max_steps = 300,
-    previous_obs_queue_len = 3
+    previous_obs_queue_len = 0
 )
 obs_l_dict = {
     k: obstacle_l_dict[k] 
     for k in [
-        'circle_line', 'small_4_circles',
-        '4_circles', 'sparse_1', 'sparse_2',
-        '16_circles', '25_circles', '49_circles',
-        '1_circle', '1_rectangle', '1_triangle',
+        'empty'
     ]
 }
-env = NavigationMixEnv(config, obs_l_dict)
+env = TransportationMixEnv(config, obs_l_dict)
 
-model = PPO.load("model_ckp/model_ckp_3")
+model = PPO.load("model_ckp/model_ckp_1")
 print(model.policy)
 
 scene_buffer = CvDrawBuffer(window_name="Simulation", resolution=(1024,1024))

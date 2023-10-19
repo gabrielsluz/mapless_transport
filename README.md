@@ -15,6 +15,10 @@ Passos:
 - Treinar pushing
 - Treinar mapless transportation easy mode
 
+Mapless Transportation:
+- Começar com circulo, visão simples e obstáculos simples
+- Como funcionar para diferentes formas?
+
 
 Mapless navigation easy mode:
 - Cenários em que Campos Pontenciais atingem pontuação máxima.

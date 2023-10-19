@@ -16,6 +16,7 @@ class Object:
         )
         self.obj_fixture_def = b2FixtureDef(shape=self.obj_shape, density=1, friction=0.3)
         self.obj_rigid_body.CreateFixture(self.obj_fixture_def)
+        self.obj_rigid_body.userData = {'type': 'object'}
         
         # the previous state should be stored inside the environment since
         # it depends on the execution of a full action step until time t+1
