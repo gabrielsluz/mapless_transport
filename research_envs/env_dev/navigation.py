@@ -8,6 +8,7 @@ from research_envs.envs.obstacle_repo import obstacle_l_dict
 from research_envs.cv_buffer.CvDrawBuffer import CvDrawBuffer
 
 import cv2
+from math import pi
 
 # def key_to_action(key):
 #     action = -1
@@ -20,26 +21,39 @@ import cv2
 #     elif key  == 119: # w
 #         action = 6
 #     return action
+# def key_to_action(key):
+#     action = -1
+#     if key == 113: #q
+#         action = 5
+#     elif key == 119: # w
+#         action = 6
+#     elif key == 101: # e
+#         action = 7
+#     elif key == 100: # d
+#         action = 0
+#     elif key == 99: # c
+#         action = 1
+#     elif key == 120: # x
+#         action = 2
+#     elif key == 122: # z
+#         action = 3
+#     elif key == 97: # a
+#         action = 4
+#     return action
 def key_to_action(key):
     action = -1
-    if key == 113: #q
-        action = 5
-    elif key == 119: # w
-        action = 6
-    elif key == 101: # e
-        action = 7
-    elif key == 100: # d
+    if key == 97: # a
         action = 0
-    elif key == 99: # c
+    elif key == 113: #q
         action = 1
-    elif key == 120: # x
+    elif key  == 119: # w
         action = 2
-    elif key == 122: # z
+    elif key == 101: # 3
         action = 3
-    elif key == 97: # a
+    elif key == 100: # d
         action = 4
+    
     return action
-
 
 def render():
     scene_buffer.PushFrame(env.render())
@@ -51,8 +65,14 @@ if __name__ == "__main__":
     config = NavigationEnvConfig(
         world_config= NavigationWorldConfig(
             obstacle_l = [],
-            n_rays = 24,
-            range_max = 5.0
+            n_rays = 8,
+            range_max = 5.0,
+            ang_min = -pi/2,
+            ang_max = pi/2,
+            agent_type = 'forward',
+            agent_width = 3.0,
+            agent_height = 2.0,
+            action_step_len = 10
         ),
         max_steps=200,
         previous_obs_queue_len=3
@@ -60,7 +80,7 @@ if __name__ == "__main__":
     obs_l_dict = {
         k: obstacle_l_dict[k] 
         for k in [
-            # 'circle_line', 'small_4_circles',
+            'circle_line', 'small_4_circles',
             # '4_circles', 'sparse_1', 'sparse_2',
             # '1_circle', '1_rectangle', '1_triangle',
             # 'corridor', 'crooked_corridor',

@@ -9,8 +9,9 @@ import random
 import dataclasses
 
 from research_envs.b2PushWorld.Obstacle import CircleObs, RectangleObs, PolygonalObs
-from research_envs.b2PushWorld.Agent import Agent
-from research_envs.b2PushWorld.AgentDirection import AgentDirection
+# from research_envs.b2PushWorld.Agent import Agent
+# from research_envs.b2PushWorld.AgentDirection import AgentDirection
+from research_envs.b2PushWorld.AgentForward import AgentForward
 
 
 # ---------- For handling collisions ----------
@@ -96,9 +97,10 @@ class NavigationWorldConfig:
     n_rays: int = 16
     range_max: float = 4.0 # maximum range of the sensor [m]
     # Agent
-    agent_type: str = 'discrete'
-    agent_force_length: float = 2.0
-    agent_radius: float = 1.0
+    agent_type: str = 'forward'
+    agent_width: float = 1.0
+    agent_height: float = 2.0
+    action_step_len: int = 10
 
 
 class NavigationWorld:
@@ -137,17 +139,14 @@ class NavigationWorld:
                 raise ValueError('Unknown object type')
 
         # Agent
-        if config.agent_type == 'discrete':
-            self.agent = Agent(
+        assert config.agent_type in ['forward']
+        if config.agent_type == 'forward':
+            self.agent = AgentForward(
                 simulator=self, x=30, y=25,
-                radius=config.agent_radius,
-                velocity=2.0, forceLength=config.agent_force_length,
-                totalDirections=8)
-        elif config.agent_type == 'continuous':
-            self.agent = AgentDirection(
-                simulator=self, x=30, y=25,
-                radius=config.agent_radius,
-                velocity=2.0, forceLength=config.agent_force_length)
+                width=config.agent_width, height=config.agent_height,
+                velocity=2.0, numSteps=config.action_step_len,
+                ang_vel_l=[-1.5, -0.75, 0, 0.75, 1.5]
+            )
 
         # Goal
         self.goal = b2Vec2(0,0)
@@ -221,8 +220,7 @@ class NavigationWorld:
         type_l = []
         point_l = []
         point1 = self.agent.agent_rigid_body.position
-        # agent_ang = self.agent.agent_rigid_body.angle
-        agent_ang = 0.0
+        agent_ang = self.agent.agent_rigid_body.angle
 
         ray_ang = self.ang_min
         for _ in range(self.n_rays):
@@ -258,8 +256,7 @@ class NavigationWorld:
         range_l = []
         type_l = []
         point_l = []
-        # agent_ang = self.agent.agent_rigid_body.angle
-        agent_ang = 0.0
+        agent_ang = self.agent.agent_rigid_body.angle
 
         ray_ang = self.ang_min
         for _ in range(self.n_rays):
@@ -305,9 +302,11 @@ class NavigationWorld:
         # Draw agent
         screen_pos = self.worldToScreen(self.agent.GetPositionAsList())
         if self.agent_collided == 0:
-            cv2.circle(screen, screen_pos, int(self.agent.agent_radius*self.pixels_per_meter), (1, 0, 0, 0), -1)
+            # cv2.circle(screen, screen_pos, int(self.agent.agent_radius*self.pixels_per_meter), (0, 0, 1, 0), -1)
+            self.agent.Draw(self.pixels_per_meter, screen, (1, 0, 0, 0), -1)
         else:
-            cv2.circle(screen, screen_pos, int(self.agent.agent_radius*self.pixels_per_meter), (0, 0, 1, 0), -1)
+            # cv2.circle(screen, screen_pos, int(self.agent.agent_radius*self.pixels_per_meter), (1, 0, 0, 0), -1)
+            self.agent.Draw(self.pixels_per_meter, screen, (0, 0, 1, 0), -1)
         return screen
 
     def drawToBufferWithLaser(self):
