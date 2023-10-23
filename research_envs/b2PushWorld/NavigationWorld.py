@@ -97,6 +97,8 @@ class NavigationWorldConfig:
     range_max: float = 4.0 # maximum range of the sensor [m]
     # Agent
     agent_type: str = 'discrete'
+    agent_force_length: float = 2.0
+    agent_radius: float = 1.0
 
 
 class NavigationWorld:
@@ -138,14 +140,14 @@ class NavigationWorld:
         if config.agent_type == 'discrete':
             self.agent = Agent(
                 simulator=self, x=30, y=25,
-                radius=1.0,
-                velocity=2.0, forceLength=0.5,
+                radius=config.agent_radius,
+                velocity=2.0, forceLength=config.agent_force_length,
                 totalDirections=8)
         elif config.agent_type == 'continuous':
             self.agent = AgentDirection(
                 simulator=self, x=30, y=25,
-                radius=1.0,
-                velocity=2.0, forceLength=0.5)
+                radius=config.agent_radius,
+                velocity=2.0, forceLength=config.agent_force_length)
 
         # Goal
         self.goal = b2Vec2(0,0)
@@ -207,7 +209,7 @@ class NavigationWorld:
     def reset(self):
         self.agent_collided = 0
         self.agent.agent_rigid_body.position = self.gen_non_overlapping_position(self.agent.agent_radius)
-        sampled_pos = self.gen_non_overlapping_position(self.goal_tolerance)
+        sampled_pos = self.gen_non_overlapping_position(self.goal_tolerance+self.agent.agent_radius)
         self.goal.x = sampled_pos[0]
         self.goal.y = sampled_pos[1]
 
@@ -219,7 +221,8 @@ class NavigationWorld:
         type_l = []
         point_l = []
         point1 = self.agent.agent_rigid_body.position
-        agent_ang = self.agent.agent_rigid_body.angle
+        # agent_ang = self.agent.agent_rigid_body.angle
+        agent_ang = 0.0
 
         ray_ang = self.ang_min
         for _ in range(self.n_rays):
@@ -255,7 +258,8 @@ class NavigationWorld:
         range_l = []
         type_l = []
         point_l = []
-        agent_ang = self.agent.agent_rigid_body.angle
+        # agent_ang = self.agent.agent_rigid_body.angle
+        agent_ang = 0.0
 
         ray_ang = self.ang_min
         for _ in range(self.n_rays):

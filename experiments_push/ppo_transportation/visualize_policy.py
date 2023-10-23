@@ -16,13 +16,14 @@ def render():
     scene_buffer.Draw()
     cv2.waitKey(1)
 
+
 config = TransportationEnvConfig(
     world_config= TransportationWorldConfig(
         obstacle_l = [],
         object_l=[{'name':'Circle', 'radius':4.0}],
         n_rays = 24,
         range_max = 25.0,
-        force_length=2.0
+        force_length=0.5
     ),
     max_steps = 300,
     previous_obs_queue_len = 0
@@ -30,13 +31,13 @@ config = TransportationEnvConfig(
 obs_l_dict = {
     k: obstacle_l_dict[k] 
     for k in [
-        'empty',
-        '1_circle', '1_rectangle', '1_triangle',
+        'empty', 'frame', 'horizontal_corridor', 'vertical_corridor','4_circles_wide',
+        '1_circle', '1_rectangle', '1_triangle'
     ]
 }
 env = TransportationMixEnv(config, obs_l_dict)
 
-model = PPO.load("model_ckp_obs/model_ckp_11")
+model = PPO.load("model_ckp/all_ang_0_force_05_25M")
 print(model.policy)
 
 scene_buffer = CvDrawBuffer(window_name="Simulation", resolution=(1024,1024))

@@ -229,15 +229,31 @@ obstacle_l_dict = {
         {'name':'Rectangle', 'pos':(22.5, 5.0), 'height':3.0, 'width':18.0},
         {'name':'Rectangle', 'pos':(28.0, 27.0), 'height':3.0, 'width':8.0},
     ],
+
+    # Pushing maps => thought for a circular object of radius 4
+    # 1_circle, 1_rectangle, 1_triangle are also good.
+    'frame': [
+        {'name':'Rectangle', 'pos':(25.0, 0.0), 'height':5.0, 'width':50.0},
+        {'name':'Rectangle', 'pos':(25.0, 50.0), 'height':5.0, 'width':50.0},
+        {'name':'Rectangle', 'pos':(0.0, 25.0), 'height':50.0, 'width':5.0},
+        {'name':'Rectangle', 'pos':(50.0, 25.0), 'height':50.0, 'width':5.0},
+    ],
+
+    'horizontal_corridor': [
+        {'name':'Rectangle', 'pos':(25.0, 0.0), 'height':25.0, 'width':50.0},
+        {'name':'Rectangle', 'pos':(25.0, 50.0), 'height':25.0, 'width':50.0},
+    ],
+
+    'vertical_corridor': [
+        {'name':'Rectangle', 'pos':(0.0, 25.0), 'height':50.0, 'width':25.0},
+        {'name':'Rectangle', 'pos':(50.0, 25.0), 'height':50.0, 'width':25.0},
+    ],
+
+    '4_circles_wide': [
+        {'name':'Circle', 'pos':(12.0, 12.0), 'radius':4.0},
+        {'name':'Circle', 'pos':(40.0, 12.0), 'radius':4.0},
+        {'name':'Circle', 'pos':(12.0, 40.0), 'radius':4.0},
+        {'name':'Circle', 'pos':(40.0, 40.0), 'radius':4.0},
+    ]
+
 }
-
-
-# - 4 obstáculos circulares
-#         - Corredor
-#         - U
-#         - G
-#         - Aleatório 1
-#         - Aleatório 2
-#         - Aleatório 3
-#         - Complexo 1
-#         - COmplexo 2

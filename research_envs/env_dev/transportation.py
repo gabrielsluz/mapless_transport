@@ -8,6 +8,7 @@ from research_envs.envs.obstacle_repo import obstacle_l_dict
 from research_envs.cv_buffer.CvDrawBuffer import CvDrawBuffer
 
 import cv2
+import numpy as np
 
 # def key_to_action(key):
 #     action = -1
@@ -53,15 +54,17 @@ if __name__ == "__main__":
         world_config= TransportationWorldConfig(
             obstacle_l = [],
             n_rays = 24,
-            range_max = 50.0
+            range_max = 25.0,
+            force_length=0.5
         ),
         max_steps=200,
-        previous_obs_queue_len=3
+        previous_obs_queue_len=0
     )
     obs_l_dict = {
         k: obstacle_l_dict[k] 
         for k in [
-            'small_4_circles',
+            'empty', 'frame', 'horizontal_corridor', 'vertical_corridor','4_circles_wide',
+        '1_circle', '1_rectangle', '1_triangle'
             # 'circle_line', 'small_4_circles',
             #'4_circles', 'sparse_1', 'sparse_2',
             # '1_circle', '1_rectangle', '1_triangle',

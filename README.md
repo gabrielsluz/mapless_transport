@@ -10,14 +10,7 @@ pip install -r requirements_freeze.txt
 Objetivo final: Mapless Transportation: Ter uma política de RL capaz de levar um objeto circular e um retangular para um goal em um ambiente simples com obstáculos. => Definir melhor o que é um ambiente simples.
 
 Passos:
-- Treinar mapless navigation easy mode
-- Avaliar no hard mode e no easy mode
-- Treinar pushing
-- Treinar mapless transportation easy mode
-
-Mapless Transportation:
-- Começar com circulo, visão simples e obstáculos simples
-- Como funcionar para diferentes formas?
+- Voltar para o navigation => fazer funcionar nos mapas de pushing.
 
 
 Mapless navigation easy mode:
@@ -31,11 +24,25 @@ Pushing:
 - Observacao: goal e centro do objeto (circular)
 
 
+## Como resolver o problema de uma forma abstrata?
+Em cada momento, a política deve:
+- Qual direção o objeto deve ir?
+- Como mover o robô?
 
-Ambientes:
-- Range dos laser e número de raios é importante.
-- Mas, e se o range for curto e o robô cair em loop?
-    - Lembrar das últimas n ações e observações deve prevenir loops de tamanho 2*n.
+Não é guloso:
+- Tem que contornar obstáculos.
+- Tem que mover o robô para checar na posição de empurrar.
+
+São dois problemas separados.
+Primeiro, define para onde o objeto deve ir e depois a ação do robô.
+A movimentação do robô também depende dos lasers.
+Mas, não são tão separados? => Pegar um caso.
+A parte de definir onde o objeto vai, depende de onde o robô pode ir. São joint.
+
+### Implicações: 
+- Diminuir o force length
+    - Entre 2, 1 e 0.5, 1 teve o melhor resultado.
+
 
 
 # Checklist para melhorar.

@@ -2,6 +2,7 @@ import gymnasium as gym
 from gymnasium import spaces
 import numpy as np
 from collections import deque
+from Box2D import b2Vec2
 
 from research_envs.b2PushWorld.TransportationWorld import TransportationWorld, TransportationWorldConfig
 
@@ -52,6 +53,15 @@ class TransportationEnv(gym.Env):
     def _gen_current_observation(self):
         range_l, _, _ = self.world.get_laser_readings()
         laser_readings = np.array(range_l) / (self.world.range_max)
+        
+        # laser_readings = []
+        # _, _, point_l = self.world.get_laser_readings()
+        # agent_pos = self.world.agent.agent_rigid_body.position
+        # for p in point_l:
+        #     agent_to_p = b2Vec2(p) - agent_pos
+        #     # laser_readings.append(np.arctan2(agent_to_p[1], agent_to_p[0])/np.pi)
+        #     laser_readings.append(agent_to_p.length / self.world.range_max)
+
         
         agent_to_goal = self.world.agent_to_goal_vector()
         # Calc angle between agent_to_goal and x-axis
@@ -172,16 +182,23 @@ class TransportationMixEnv(gym.Env):
         self.env_l = []
         for key in obstacle_l_dict.keys():
             config.world_config.obstacle_l = obstacle_l_dict[key]
-            self.env_l.append(TransportationEnv(config))
-        self.action_space = self.env_l[0].action_space
-        self.observation_space = self.env_l[0].observation_space
-        self.cur_env = self.env_l[np.random.randint(len(self.env_l))]
+            self.env_l.append((key, TransportationEnv(config)))
+
+        idx = np.random.randint(len(self.env_l))
+        self.cur_env = self.env_l[idx][1]
+        self.cur_env_name = self.env_l[idx][0]
+
+        self.action_space = self.cur_env.action_space
+        self.observation_space = self.cur_env.observation_space
 
     def step(self, action):
         return self.cur_env.step(action)
     
     def reset(self, seed=None, options=None):
-        self.cur_env = self.env_l[np.random.randint(len(self.env_l))]
+        idx = np.random.randint(len(self.env_l))
+        self.cur_env = self.env_l[idx][1]
+        self.cur_env_name = self.env_l[idx][0]
+
         return self.cur_env.reset(seed=seed, options=options)
     
     def render(self, mode='human'):

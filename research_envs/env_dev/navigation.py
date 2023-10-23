@@ -60,22 +60,15 @@ if __name__ == "__main__":
     obs_l_dict = {
         k: obstacle_l_dict[k] 
         for k in [
-            'circle_line', 'small_4_circles',
-            '4_circles', 'sparse_1', 'sparse_2',
-            '1_circle', '1_rectangle', '1_triangle',
-            #'corridor', 'crooked_corridor',
-            '16_circles', '25_circles', '49_circles',
+            # 'circle_line', 'small_4_circles',
+            # '4_circles', 'sparse_1', 'sparse_2',
             # '1_circle', '1_rectangle', '1_triangle',
             # 'corridor', 'crooked_corridor',
             # '16_circles', '25_circles', '49_circles',
             # 'small_U', 'small_G',
-            # 'U', 'G'
-            #'circle_line', 'small_4_circles', 'empty'
-            #'small_4_circles', '16_circles', '25_circles', '49_circles',
-            #'empty', 'circle_line', 'small_4_circles',
-            #'1_circle', '1_rectangle', '1_triangle', 
-            #'4_circles', '16_circles', 'corridor', 'crooked_corridor',
-            #'sparse_1', 'sparse_2'
+            # 'U', 'G',
+            # 'frame', 'horizontal_corridor', 'vertical_corridor',
+            # '4_circles_wide'
         ]
     }
     env = NavigationMixEnv(config, obs_l_dict)

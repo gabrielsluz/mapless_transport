@@ -40,7 +40,7 @@ def F_rep(point, obs_point, dist,  min_dist, k_rep, gamma):
 
 
 world_config=NavigationWorldConfig(
-    obstacle_l = obstacle_l_dict['corridor'],
+    obstacle_l = obstacle_l_dict['1_triangle'],
     n_rays = 24,
     range_max = 25.0
 )
@@ -65,8 +65,8 @@ for x_i in range(0, world.height, step_sz):
                 point=np.array([x_i, y_i]),
                 obs_point=np.array(point_l[i]),
                 dist=range_l[i],
-                min_dist=3,
-                k_rep=100,
+                min_dist=5,
+                k_rep=200,
                 gamma=2
             )
         force_dict[(x_i, y_i)] = att_force + rep_force

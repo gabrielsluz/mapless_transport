@@ -252,7 +252,8 @@ class TransportationWorld:
         self.object_collided = 0
 
         self.obj = self.obj_l[random.randrange(0, len(self.obj_l))]
-        self.obj.obj_rigid_body.position = self.gen_non_overlapping_position(self.obj.obj_radius*1.2)
+        self.obj.obj_rigid_body.position = self.gen_non_overlapping_position(
+            1.2*(self.obj.obj_radius + 2*self.agent.agent_radius))
         self.obj.obj_rigid_body.angle = random.uniform(0, 2*np.pi)
 
         x_lim = [
@@ -278,7 +279,8 @@ class TransportationWorld:
         type_l = []
         point_l = []
         point1 = self.agent.agent_rigid_body.position
-        agent_ang = self.agent.agent_rigid_body.angle
+        # agent_ang = self.agent.agent_rigid_body.angle
+        agent_ang = 0.0
 
         ray_ang = self.ang_min
         for _ in range(self.n_rays):
@@ -310,7 +312,8 @@ class TransportationWorld:
         range_l = []
         type_l = []
         point_l = []
-        agent_ang = self.agent.agent_rigid_body.angle
+        # agent_ang = self.agent.agent_rigid_body.angle
+        agent_ang = 0.0
 
         ray_ang = self.ang_min
         for _ in range(self.n_rays):

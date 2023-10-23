@@ -51,17 +51,17 @@ def calc_direction():
             obs_point=np.array(point_l[i]),
             dist=range_l[i],
             min_dist=5,
-            k_rep=50,
+            k_rep=200,
             gamma=2
         )
     force = att_force + rep_force
     return force / np.linalg.norm(force)
 
 def render():
-    # scene_buffer.PushFrame(env.render())
-    # scene_buffer.Draw()
-    # cv2.waitKey(1)
-    pass
+    scene_buffer.PushFrame(env.render())
+    scene_buffer.Draw()
+    cv2.waitKey(1)
+    # pass
 
 config = NavigationEnvConfig(
     world_config= NavigationWorldConfig(
@@ -76,10 +76,13 @@ config = NavigationEnvConfig(
 obs_l_dict = {
     k: obstacle_l_dict[k] 
     for k in [
-        'circle_line', 'small_4_circles',
-        '4_circles', 'sparse_1', 'sparse_2',
-        '16_circles', '25_circles', '49_circles',
+        'frame', 'horizontal_corridor', 'vertical_corridor',
+        '4_circles_wide',
         '1_circle', '1_rectangle', '1_triangle',
+        # 'circle_line', 'small_4_circles',
+        # '4_circles', 'sparse_1', 'sparse_2',
+        # '16_circles', '25_circles', '49_circles',
+        # '1_circle', '1_rectangle', '1_triangle',
         # 'corridor', 'crooked_corridor',
         # 'small_U', 'small_G',
         # 'U', 'G'
