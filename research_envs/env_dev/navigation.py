@@ -52,7 +52,6 @@ def key_to_action(key):
         action = 3
     elif key == 100: # d
         action = 4
-    
     return action
 
 def render():

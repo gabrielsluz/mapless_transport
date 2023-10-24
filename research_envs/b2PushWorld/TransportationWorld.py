@@ -10,8 +10,7 @@ import dataclasses
 
 from research_envs.b2PushWorld.Obstacle import CircleObs, RectangleObs, PolygonalObs
 from research_envs.b2PushWorld.Object import CircleObj, RectangleObj, PolygonalObj
-from research_envs.b2PushWorld.Agent import Agent
-from research_envs.b2PushWorld.AgentDirection import AgentDirection
+from research_envs.b2PushWorld.AgentForward import AgentForward
 
 
 # ---------- For handling collisions ----------
@@ -99,8 +98,14 @@ class TransportationWorldConfig:
     n_rays: int = 16
     range_max: float = 4.0 # maximum range of the sensor [m]
     # Agent
-    agent_type: str = 'discrete'
-    force_length: float = 2.0
+    agent_type: str = 'forward'
+    agent_width: float = 1.0
+    agent_height: float = 2.0
+    action_step_len: int = 10
+    action_velocity: float = 2.0
+    action_l: list = dataclasses.field(default_factory=lambda:[-1.5, -0.75, 0, 0.75, 1.5])
+    # Goal
+    goal_tolerance: float = 2.0
 
 
 
@@ -157,21 +162,18 @@ class TransportationWorld:
         self.max_obj_dist = config.max_obj_dist
 
         # Agent
-        if config.agent_type == 'discrete':
-            self.agent = Agent(
+        assert config.agent_type in ['forward']
+        if config.agent_type == 'forward':
+            self.agent = AgentForward(
                 simulator=self, x=30, y=25,
-                radius=1.0,
-                velocity=2.0, forceLength=config.force_length,
-                totalDirections=8)
-        elif config.agent_type == 'continuous':
-            self.agent = AgentDirection(
-                simulator=self, x=30, y=25,
-                radius=1.0,
-                velocity=2.0, forceLength=config.force_length)
+                width=config.agent_width, height=config.agent_height,
+                velocity=config.action_velocity, numSteps=config.action_step_len,
+                ang_vel_l=config.action_l
+            )
 
         # Goal
         self.goal = b2Vec2(0,0)
-        self.goal_tolerance = 2.0
+        self.goal_tolerance = config.goal_tolerance
 
         # Collisions
         self.contactListener = NavContactListener(simulator=self)
@@ -217,8 +219,14 @@ class TransportationWorld:
     def agent_to_goal_vector(self):
         return self.goal - self.agent.agent_rigid_body.position
     
+    def agent_to_goal_local_vector(self):
+        return self.agent.agent_rigid_body.GetLocalPoint(self.goal)
+    
     def agent_to_object_vector(self):
         return self.obj.obj_rigid_body.position - self.agent.agent_rigid_body.position
+    
+    def agent_to_object_local_vector(self):
+        return self.agent.agent_rigid_body.GetLocalPoint(self.obj.obj_rigid_body.position)
     
     def object_to_goal_vector(self):
         return self.goal - self.obj.obj_rigid_body.position
@@ -266,6 +274,7 @@ class TransportationWorld:
         ]
         self.agent.agent_rigid_body.position = self.gen_non_overlapping_position_in_limit(
             self.agent.agent_radius*1.2, x_lim, y_lim)
+        self.agent.agent_rigid_body.angle = random.uniform(0, 2*np.pi)
 
         sampled_pos = self.gen_non_overlapping_position(self.goal_tolerance+self.obj.obj_radius)
         self.goal.x = sampled_pos[0]
@@ -279,8 +288,7 @@ class TransportationWorld:
         type_l = []
         point_l = []
         point1 = self.agent.agent_rigid_body.position
-        # agent_ang = self.agent.agent_rigid_body.angle
-        agent_ang = 0.0
+        agent_ang = self.agent.agent_rigid_body.angle
 
         ray_ang = self.ang_min
         for _ in range(self.n_rays):
@@ -312,8 +320,7 @@ class TransportationWorld:
         range_l = []
         type_l = []
         point_l = []
-        # agent_ang = self.agent.agent_rigid_body.angle
-        agent_ang = 0.0
+        agent_ang = self.agent.agent_rigid_body.angle
 
         ray_ang = self.ang_min
         for _ in range(self.n_rays):
@@ -371,8 +378,10 @@ class TransportationWorld:
         # Draw agent
         screen_pos = self.worldToScreen(self.agent.GetPositionAsList())
         if self.agent_collided == 0:
+            # self.agent.Draw(self.pixels_per_meter, screen, (1, 0, 0, 0), -1)
             cv2.circle(screen, screen_pos, int(self.agent.agent_radius*self.pixels_per_meter), (1, 0, 0, 0), -1)
         else:
+            # self.agent.Draw(self.pixels_per_meter, screen, (0, 0, 1, 0), -1)
             cv2.circle(screen, screen_pos, int(self.agent.agent_radius*self.pixels_per_meter), (0, 0, 1, 0), -1)
         return screen
 

@@ -1,5 +1,5 @@
 import numpy as np
-from Box2D import b2PolygonShape, b2Vec2, b2FixtureDef
+from Box2D import b2PolygonShape, b2CircleShape, b2Vec2, b2FixtureDef
 from math import sin, cos, pi, sqrt
 import cv2
 
@@ -41,7 +41,9 @@ class AgentForward:
         # ----------- Body configuration ------------
         # Circumcircle:
         self.agent_radius = sqrt((width**2)/4 + (height**2)/4)
-        self.agent_shape = b2PolygonShape(box=(width/2, height/2))
+        # self.agent_shape = b2PolygonShape(box=(width/2, height/2))
+        self.agent_shape = b2CircleShape(radius=self.agent_radius)
+
         self.agent_fixture_def = b2FixtureDef(shape=self.agent_shape, density=1, friction=0.0)
         self.agent_rigid_body.CreateFixture(self.agent_fixture_def)
         self.last_agent_pos = b2Vec2(x,y)

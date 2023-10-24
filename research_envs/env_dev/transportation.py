@@ -21,23 +21,36 @@ import numpy as np
 #     elif key  == 119: # w
 #         action = 6
 #     return action
+# def key_to_action(key):
+#     action = -1
+#     if key == 113: #q
+#         action = 5
+#     elif key == 119: # w
+#         action = 6
+#     elif key == 101: # e
+#         action = 7
+#     elif key == 100: # d
+#         action = 0
+#     elif key == 99: # c
+#         action = 1
+#     elif key == 120: # x
+#         action = 2
+#     elif key == 122: # z
+#         action = 3
+#     elif key == 97: # a
+#         action = 4
+#     return action
 def key_to_action(key):
     action = -1
-    if key == 113: #q
-        action = 5
-    elif key == 119: # w
-        action = 6
-    elif key == 101: # e
-        action = 7
-    elif key == 100: # d
+    if key == 97: # a
         action = 0
-    elif key == 99: # c
+    elif key == 113: #q
         action = 1
-    elif key == 120: # x
+    elif key  == 119: # w
         action = 2
-    elif key == 122: # z
+    elif key == 101: # 3
         action = 3
-    elif key == 97: # a
+    elif key == 100: # d
         action = 4
     return action
 
@@ -53,9 +66,16 @@ if __name__ == "__main__":
     config = TransportationEnvConfig(
         world_config= TransportationWorldConfig(
             obstacle_l = [],
-            n_rays = 24,
+            n_rays = 32,
             range_max = 25.0,
-            force_length=0.5
+            ang_min = -np.pi/2,
+            ang_max = np.pi/2,
+            agent_type = 'forward',
+            agent_width = 2.0,
+            agent_height = 2.0,
+            action_step_len = 10,
+            action_velocity=4.0,
+            action_l=[-3.0, -1.5, 0, 1.5, 3.0]
         ),
         max_steps=200,
         previous_obs_queue_len=0
@@ -65,6 +85,7 @@ if __name__ == "__main__":
         for k in [
             'empty', 'frame', 'horizontal_corridor', 'vertical_corridor','4_circles_wide',
         '1_circle', '1_rectangle', '1_triangle'
+
             # 'circle_line', 'small_4_circles',
             #'4_circles', 'sparse_1', 'sparse_2',
             # '1_circle', '1_rectangle', '1_triangle',

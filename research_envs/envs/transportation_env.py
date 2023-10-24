@@ -20,7 +20,7 @@ class TransportationEnv(gym.Env):
     def __init__(self, config: TransportationEnvConfig = TransportationEnvConfig()):
         self.config = config
         self.world = TransportationWorld(config.world_config)
-        self.action_space = spaces.Discrete(8)
+        self.action_space = spaces.Discrete(self.world.agent.n_actions)
 
         # Observation: Laser + agent to final goal vector
         n_rays = config.world_config.n_rays
@@ -52,7 +52,8 @@ class TransportationEnv(gym.Env):
 
     def _gen_current_observation(self):
         range_l, _, _ = self.world.get_laser_readings()
-        laser_readings = np.array(range_l) / (self.world.range_max)
+        # laser_readings = np.array(range_l) / (self.world.range_max)
+        laser_readings = np.array(range_l) / (self.world.range_max*0.2)
         
         # laser_readings = []
         # _, _, point_l = self.world.get_laser_readings()
@@ -62,15 +63,14 @@ class TransportationEnv(gym.Env):
         #     # laser_readings.append(np.arctan2(agent_to_p[1], agent_to_p[0])/np.pi)
         #     laser_readings.append(agent_to_p.length / self.world.range_max)
 
-        
-        agent_to_goal = self.world.agent_to_goal_vector()
+        agent_to_goal = self.world.agent_to_goal_local_vector()
         # Calc angle between agent_to_goal and x-axis
         angle = np.arctan2(agent_to_goal[1], agent_to_goal[0])
         goal_obs = np.array([
             angle/np.pi, min(agent_to_goal.length/50.0, 1.0)
             ])
         
-        agent_to_obj = self.world.agent_to_object_vector()
+        agent_to_obj = self.world.agent_to_object_local_vector()
         # Calc angle between agent_to_obj and x-axis
         angle = np.arctan2(agent_to_obj[1], agent_to_obj[0])
         obj_obs = np.array([
