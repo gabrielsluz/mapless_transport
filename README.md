@@ -13,16 +13,25 @@ Passos:
 - Voltar para o navigation => fazer funcionar nos mapas de pushing.
 
 
-Mapless navigation easy mode:
-- Cenários em que Campos Pontenciais atingem pontuação máxima.
-    - Copiar o range e o número de lasers.
-    - Force length
-    - Número de ações
+
 
 
 Pushing:
 - Observacao: goal e centro do objeto (circular)
 
+## Experimento no navigation
+Ideias que melhoraram:
+- Mudar para o Agent Forward
+- Observação:
+    - Mais lasers => não tenho certeza se ajudou.
+    - Deixar entre 0 e 5 a distância normalizada.
+- Recompensa:
+    - Dar maior penalidade de morte.
+    - DIminuir recompensa de progresso e penalidade de tempo.
+
+Pontos melhorados:
+- Agent stuck in a loop.
+- Agente se matando ao passar muito perto dos obstáculos.
 
 ## Como resolver o problema de uma forma abstrata?
 Em cada momento, a política deve:

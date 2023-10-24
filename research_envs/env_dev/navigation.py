@@ -65,26 +65,30 @@ if __name__ == "__main__":
     config = NavigationEnvConfig(
         world_config= NavigationWorldConfig(
             obstacle_l = [],
-            n_rays = 8,
-            range_max = 5.0,
+            n_rays = 32,
+            range_max = 25.0,
             ang_min = -pi/2,
             ang_max = pi/2,
             agent_type = 'forward',
-            agent_width = 3.0,
-            agent_height = 2.0,
-            action_step_len = 10
+            agent_width = 1.0,
+            agent_height = 1.0,
+            action_step_len = 10,
+            action_velocity=4.0,
+            action_l=[-3.0, -1.5, 0, 1.5, 3.0]
         ),
         max_steps=200,
-        previous_obs_queue_len=3
+        previous_obs_queue_len=0
     )
     obs_l_dict = {
         k: obstacle_l_dict[k] 
         for k in [
-            'circle_line', 'small_4_circles',
+            # 'empty', 'frame', 'horizontal_corridor', 'vertical_corridor','4_circles_wide',
+            # 'circle_line', 'small_4_circles',
             # '4_circles', 'sparse_1', 'sparse_2',
             # '1_circle', '1_rectangle', '1_triangle',
             # 'corridor', 'crooked_corridor',
             # '16_circles', '25_circles', '49_circles',
+            '49_circles',
             # 'small_U', 'small_G',
             # 'U', 'G',
             # 'frame', 'horizontal_corridor', 'vertical_corridor',

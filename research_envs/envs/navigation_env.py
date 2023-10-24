@@ -19,7 +19,7 @@ class NavigationEnv(gym.Env):
     def __init__(self, config: NavigationEnvConfig = NavigationEnvConfig()):
         self.config = config
         self.world = NavigationWorld(config.world_config)
-        self.action_space = spaces.Discrete(8)
+        self.action_space = spaces.Discrete(self.world.agent.n_actions)
 
         # Observation: Laser + agent to final goal vector
         n_rays = config.world_config.n_rays
@@ -49,9 +49,11 @@ class NavigationEnv(gym.Env):
 
     def _gen_current_observation(self):
         range_l, _, _ = self.world.get_laser_readings()
-        laser_readings = np.array(range_l) / (self.world.range_max)
+        #laser_readings = np.array(range_l) / (self.world.range_max)
+        laser_readings = np.array(range_l) / (self.world.range_max*0.2)
+        # laser_readings = 5*np.sqrt(laser_readings)
         
-        agent_to_goal = self.world.agent_to_goal_vector()
+        agent_to_goal = self.world.agent_to_goal_local_vector()
         # Calc angle between agent_to_goal and x-axis
         angle = np.arctan2(agent_to_goal[1], agent_to_goal[0])
         goal_obs = np.array([
@@ -82,14 +84,14 @@ class NavigationEnv(gym.Env):
 
     def _calc_reward(self):
         if self.world.did_agent_collide():
-            return -50.0
+            return -200.0
         elif self.world.did_agent_reach_goal():
             return 200.0
         else:
             # Progress reward => getting closer to goal
             self.cur_dist = self.world.agent_to_goal_vector().length
             progress_reward = (self.last_dist - self.cur_dist)
-            return progress_reward - 0.2 # time penalty
+            return 0.1*progress_reward - 0.01 # time penalty
 
     def step(self, action):
         # (observation, reward, terminated, truncated, info)

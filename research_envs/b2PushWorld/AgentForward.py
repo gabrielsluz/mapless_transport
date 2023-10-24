@@ -69,7 +69,6 @@ class AgentForward:
     def PerformAction(self, action : int):
         self.agent_rigid_body.angularVelocity = self.ang_vel_l[action]
         self.state = 1
-
         self.cur_action_steps = 0
 
     def IsPerformingAction(self):

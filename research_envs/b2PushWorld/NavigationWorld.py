@@ -9,8 +9,6 @@ import random
 import dataclasses
 
 from research_envs.b2PushWorld.Obstacle import CircleObs, RectangleObs, PolygonalObs
-# from research_envs.b2PushWorld.Agent import Agent
-# from research_envs.b2PushWorld.AgentDirection import AgentDirection
 from research_envs.b2PushWorld.AgentForward import AgentForward
 
 
@@ -101,6 +99,8 @@ class NavigationWorldConfig:
     agent_width: float = 1.0
     agent_height: float = 2.0
     action_step_len: int = 10
+    action_velocity: float = 2.0
+    action_l: list = dataclasses.field(default_factory=lambda:[-1.5, -0.75, 0, 0.75, 1.5])
 
 
 class NavigationWorld:
@@ -144,8 +144,8 @@ class NavigationWorld:
             self.agent = AgentForward(
                 simulator=self, x=30, y=25,
                 width=config.agent_width, height=config.agent_height,
-                velocity=2.0, numSteps=config.action_step_len,
-                ang_vel_l=[-1.5, -0.75, 0, 0.75, 1.5]
+                velocity=config.action_velocity, numSteps=config.action_step_len,
+                ang_vel_l=config.action_l
             )
 
         # Goal
@@ -193,6 +193,11 @@ class NavigationWorld:
     def agent_to_goal_vector(self):
         return self.goal - self.agent.agent_rigid_body.position
 
+    def agent_to_goal_local_vector(self):
+        # From the agent coordinate frame
+        # return self.agent.agent_rigid_body.transform * self.goal
+        return self.agent.agent_rigid_body.GetLocalPoint(self.goal)
+
     def gen_non_overlapping_position(self, radius):
         callback = CheckOverlapCallback()
         for _ in range(300):
@@ -207,7 +212,8 @@ class NavigationWorld:
 
     def reset(self):
         self.agent_collided = 0
-        self.agent.agent_rigid_body.position = self.gen_non_overlapping_position(self.agent.agent_radius)
+        self.agent.agent_rigid_body.position = self.gen_non_overlapping_position(2.0*self.agent.agent_radius)
+        self.agent.agent_rigid_body.angle = random.uniform(0, 2*np.pi)
         sampled_pos = self.gen_non_overlapping_position(self.goal_tolerance+self.agent.agent_radius)
         self.goal.x = sampled_pos[0]
         self.goal.y = sampled_pos[1]
