@@ -53,9 +53,9 @@ if __name__ == "__main__":
     config = TransportationEnvConfig(
         world_config= TransportationWorldConfig(
             obstacle_l = [],
-            n_rays = 24,
+            n_rays = 1,
             range_max = 25.0,
-            force_length=0.5
+            force_length=1.0
         ),
         max_steps=200,
         previous_obs_queue_len=0

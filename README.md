@@ -43,7 +43,16 @@ A parte de definir onde o objeto vai, depende de onde o robô pode ir. São join
 - Diminuir o force length
     - Entre 2, 1 e 0.5, 1 teve o melhor resultado.
 
+## Modificar os rewards
+O sucesso tem que ser atrativo no espaço de episódios.
 
+O agente fica bom no ambiente de se manter no círculo.
+Mas, quando é para dar push, fica ruim.
+
+Ideias:
+- Aumentar reward de sucesso e penalidade de morte:
+    - Agente não aprende nada.
+- Aumentar reward de sucesso apenas.
 
 # Checklist para melhorar.
 
