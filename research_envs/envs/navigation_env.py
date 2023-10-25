@@ -82,14 +82,15 @@ class NavigationEnv(gym.Env):
 
     def _calc_reward(self):
         if self.world.did_agent_collide():
-            return -50.0
+            return -100.0
         elif self.world.did_agent_reach_goal():
-            return 200.0
+            return 100.0
         else:
-            # Progress reward => getting closer to goal
-            self.cur_dist = self.world.agent_to_goal_vector().length
-            progress_reward = (self.last_dist - self.cur_dist)
-            return progress_reward - 0.2 # time penalty
+            # # Progress reward => getting closer to goal
+            # self.cur_dist = self.world.agent_to_goal_vector().length
+            # progress_reward = (self.last_dist - self.cur_dist)
+            # return progress_reward - 0.2 # time penalty
+            return -0.01
 
     def step(self, action):
         # (observation, reward, terminated, truncated, info)

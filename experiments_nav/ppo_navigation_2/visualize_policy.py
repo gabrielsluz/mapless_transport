@@ -11,10 +11,10 @@ import cv2
 from stable_baselines3 import PPO
 
 def render():
-    # pass
-    scene_buffer.PushFrame(env.render())
-    scene_buffer.Draw()
-    cv2.waitKey(1)
+    pass
+    # scene_buffer.PushFrame(env.render())
+    # scene_buffer.Draw()
+    # cv2.waitKey(1)
 
 config = NavigationEnvConfig(
     world_config= NavigationWorldConfig(
@@ -24,13 +24,19 @@ config = NavigationEnvConfig(
         agent_force_length=1.0
     ),
     max_steps = 300,
-    previous_obs_queue_len = 0
+    previous_obs_queue_len = 5
 )
 obs_l_dict = {
     k: obstacle_l_dict[k] 
     for k in [
         'empty', 'frame', 'horizontal_corridor', 'vertical_corridor','4_circles_wide',
         '1_circle', '1_rectangle', '1_triangle'
+        # 'empty', 'frame', 'horizontal_corridor', 'vertical_corridor', '4_circles_wide',
+        # '1_circle', '1_rectangle', '1_triangle',
+        # 'circle_line', 'small_4_circles',
+        # '4_circles', 'sparse_1', 'sparse_2',
+        # 'corridor', 'crooked_corridor',
+        # '16_circles', '25_circles', '49_circles',
     ]
 }
 env = NavigationMixEnv(config, obs_l_dict)

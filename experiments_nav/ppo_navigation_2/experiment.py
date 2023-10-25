@@ -6,6 +6,8 @@ from research_envs.envs.navigation_env import NavigationEnvConfig, NavigationMix
 from research_envs.b2PushWorld.NavigationWorld import NavigationWorldConfig
 from research_envs.envs.obstacle_repo import obstacle_l_dict
 from stable_baselines3 import PPO
+from stable_baselines3.common.callbacks import EvalCallback
+import torch
 
 import os
 
@@ -17,20 +19,39 @@ config = NavigationEnvConfig(
         agent_force_length=1.0
     ),
     max_steps = 300,
-    previous_obs_queue_len = 0
+    previous_obs_queue_len = 5
 )
 obs_l_dict = {
     k: obstacle_l_dict[k] 
     for k in [
-        'empty', 'frame', 'horizontal_corridor', 'vertical_corridor','4_circles_wide',
-        '1_circle', '1_rectangle', '1_triangle'
+        'empty', 'frame', 'horizontal_corridor', 'vertical_corridor', '4_circles_wide',
+        '1_circle', '1_rectangle', '1_triangle',
+        'circle_line', 'small_4_circles',
+        '4_circles', 'sparse_1', 'sparse_2',
+        'corridor', 'crooked_corridor',
+        '16_circles', '25_circles', '49_circles',
+        # 'small_U', 'small_G',
+        # 'U', 'G',
     ]
 }
 env = NavigationMixEnv(config, obs_l_dict)
 
+obs_l_dict = {
+    k: obstacle_l_dict[k] 
+    for k in [
+        'empty', 'frame', 'horizontal_corridor', 'vertical_corridor', '4_circles_wide',
+        '1_circle', '1_rectangle', '1_triangle'
+    ]
+}
+eval_env = NavigationMixEnv(config, obs_l_dict)
+
+policy_kwargs = dict(activation_fn=torch.nn.ReLU,
+                     net_arch=dict(pi=[64, 64, 64], vf=[64, 64, 64]))
+
 model = PPO(
     "MlpPolicy", env,
     ent_coef=0.01,
+    policy_kwargs=policy_kwargs,
     verbose=1, tensorboard_log="./tensorboard_dir/")
 
 # Create dir 
@@ -38,12 +59,26 @@ ckp_dir = 'model_ckp'
 if not os.path.exists(ckp_dir): 
     os.makedirs(ckp_dir) 
 
+# Create log dir where evaluation results will be saved
+eval_log_dir = "./eval_logs/"
+os.makedirs(eval_log_dir, exist_ok=True)
+
+eval_callback = EvalCallback(eval_env, best_model_save_path=eval_log_dir,
+                              log_path=eval_log_dir, eval_freq=50000,
+                              n_eval_episodes=200, deterministic=True,
+                              render=False)
+
+
+name = 'ppo_prev_action_5_no_progresss_with_time_penalty_minus_100_collision_medium_training_3_64_layers'
+
 model.learn(
-    total_timesteps=250000, log_interval=10, progress_bar=True, reset_num_timesteps=True,
-    tb_log_name='ppo_ang_0')
+    total_timesteps=3000000, log_interval=10, progress_bar=True, reset_num_timesteps=True,
+    callback=eval_callback,
+    tb_log_name=name)
 model.save(os.path.join(ckp_dir, "model_ckp_0"))
-for i in range(1, 20):
-    model.learn(
-        total_timesteps=250000, log_interval=10, progress_bar=True, reset_num_timesteps=False,
-        tb_log_name='ppo_ang_0')
-    model.save(os.path.join(ckp_dir, "model_ckp_"+str(i)))
+# for i in range(1, 20):
+#     model.learn(
+#         total_timesteps=250000, log_interval=10, progress_bar=True, reset_num_timesteps=False,
+#         callback=eval_callback,
+#         tb_log_name=name)
+#     model.save(os.path.join(ckp_dir, "model_ckp_"+str(i)))
