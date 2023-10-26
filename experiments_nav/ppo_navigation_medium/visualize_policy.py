@@ -8,14 +8,13 @@ from research_envs.b2PushWorld.NavigationWorld import NavigationWorldConfig
 from research_envs.cv_buffer.CvDrawBuffer import CvDrawBuffer
 
 import cv2
-import torch
 from stable_baselines3 import PPO
 
 def render():
-    # pass
-    scene_buffer.PushFrame(env.render())
-    scene_buffer.Draw()
-    cv2.waitKey(1)
+    pass
+    # scene_buffer.PushFrame(env.render())
+    # scene_buffer.Draw()
+    # cv2.waitKey(1)
 
 config = NavigationEnvConfig(
     world_config= NavigationWorldConfig(
@@ -30,7 +29,8 @@ config = NavigationEnvConfig(
 obs_l_dict = {
     k: obstacle_l_dict[k] 
     for k in [
-        '49_circles'
+        'empty', 'frame', 'horizontal_corridor', 'vertical_corridor','4_circles_wide',
+        '1_circle', '1_rectangle', '1_triangle'
         # 'empty', 'frame', 'horizontal_corridor', 'vertical_corridor', '4_circles_wide',
         # '1_circle', '1_rectangle', '1_triangle',
         # 'circle_line', 'small_4_circles',

@@ -209,7 +209,7 @@ class NavigationWorld:
     def reset(self):
         self.agent_collided = 0
         self.agent.agent_rigid_body.position = self.gen_non_overlapping_position(self.agent.agent_radius)
-        sampled_pos = self.gen_non_overlapping_position(self.goal_tolerance+self.agent.agent_radius)
+        sampled_pos = self.gen_non_overlapping_position(self.goal_tolerance)
         self.goal.x = sampled_pos[0]
         self.goal.y = sampled_pos[1]
 
