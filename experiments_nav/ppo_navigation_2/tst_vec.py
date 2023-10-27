@@ -33,10 +33,30 @@ Solução:
 
 Teste atual:
 - Com mais treinamento e 5 ações, consigo chegar em 99%?
+=> Não.
 
 Os artigos usam redes maiores: 3x512
 
 Próximos testes:
 - Aumentar a rede
-- Se eu colocar no 49_circles + empty apenas, ele aprende?
-    - Ou só o corridor?
+
+Desafio atual: eliminar falha por stuck.
+Ideias:
+- Lembrar as ações passadas
+- Lembrar as ações e observações passadas
+- Usar uma rede recorrente.
+
+Investir: Lembrar ações e observações.
+Quantas lembrar e com qual granularidade?
+Começar com simplicidade:
+- Lembrar das 5 observacoes inteiras e acoes
+
+Tentar usar o PPO-Recurrent => Muito lento
+
+Opções para atingir o 99%:
+- Curriculum learning
+- Tunar o PPO
+- Testar outro algoritmo
+
+
+

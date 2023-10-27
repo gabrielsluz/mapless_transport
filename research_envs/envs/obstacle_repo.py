@@ -165,6 +165,108 @@ obstacle_l_dict = {
         {'name':'Circle', 'pos':(5*8.33, 6*8.33), 'radius':2.0},
         {'name':'Circle', 'pos':(6*8.33, 6*8.33), 'radius':2.0},
     ],
+    '25_rectangles': [
+        # Upper left:
+        {'name': 'Rectangle', 'pos': (6.25, 6.25), 'height': 2.0, 'width': 5.0},
+        {'name': 'Rectangle', 'pos': (18.75, 6.25), 'height': 2.0, 'width': 5.0},
+        {'name': 'Rectangle', 'pos': (6.25, 18.75), 'height': 2.0, 'width': 5.0},
+        {'name': 'Rectangle', 'pos': (18.75, 18.75), 'height': 2.0, 'width': 5.0},
+        # Upper right:
+        {'name': 'Rectangle', 'pos': (31.25, 6.25), 'height': 2.0, 'width': 5.0},
+        {'name': 'Rectangle', 'pos': (43.75, 6.25), 'height': 2.0, 'width': 5.0},
+        {'name': 'Rectangle', 'pos': (31.25, 18.75), 'height': 2.0, 'width': 5.0},
+        {'name': 'Rectangle', 'pos': (43.75, 18.75), 'height': 2.0, 'width': 5.0},
+        # Lower left:
+        {'name': 'Rectangle', 'pos': (6.25, 31.25), 'height': 2.0, 'width': 5.0},
+        {'name': 'Rectangle', 'pos': (18.75, 31.25), 'height': 2.0, 'width': 5.0},
+        {'name': 'Rectangle', 'pos': (6.25, 43.75), 'height': 2.0, 'width': 5.0},
+        {'name': 'Rectangle', 'pos': (18.75, 43.75), 'height': 2.0, 'width': 5.0},
+        # Lower right:
+        {'name': 'Rectangle', 'pos': (31.25, 31.25), 'height': 2.0, 'width': 5.0},
+        {'name': 'Rectangle', 'pos': (43.75, 31.25), 'height': 2.0, 'width': 5.0},
+        {'name': 'Rectangle', 'pos': (31.25, 43.75), 'height': 2.0, 'width': 5.0},
+        {'name': 'Rectangle', 'pos': (43.75, 43.75), 'height': 2.0, 'width': 5.0},
+        # Upper 3 row:
+        {'name': 'Rectangle', 'pos': (12.5, 12.5), 'height': 2.0, 'width': 5.0},
+        {'name': 'Rectangle', 'pos': (25.0, 12.5), 'height': 2.0, 'width': 5.0},
+        {'name': 'Rectangle', 'pos': (37.5, 12.5), 'height': 2.0, 'width': 5.0},
+        # Middle 3 row:
+        {'name': 'Rectangle', 'pos': (12.5, 25.0), 'height': 2.0, 'width': 5.0},
+        {'name': 'Rectangle', 'pos': (25.0, 25.0), 'height': 2.0, 'width': 5.0},
+        {'name': 'Rectangle', 'pos': (37.5, 25.0), 'height': 2.0, 'width': 5.0},
+        # Lower 3 row:
+        {'name': 'Rectangle', 'pos': (12.5, 37.5), 'height': 2.0, 'width': 5.0},
+        {'name': 'Rectangle', 'pos': (25.0, 37.5), 'height': 2.0, 'width': 5.0},
+        {'name': 'Rectangle', 'pos': (37.5, 37.5), 'height': 2.0, 'width': 5.0},
+    ],
+    '25_small_triangles': [
+        # Upper left:
+        {'name': 'Polygon', 'pos': (6.25, 6.25), 'vertices': [(5, 8.25), (7, 8.25), (6, 6.25)]},
+        {'name': 'Polygon', 'pos': (18.75, 6.25), 'vertices': [(17.75, 8.25), (19.75, 8.25), (18.75, 6.25)]},
+        {'name': 'Polygon', 'pos': (6.25, 18.75), 'vertices': [(5, 20.75), (7, 20.75), (6, 18.75)]},
+        {'name': 'Polygon', 'pos': (18.75, 18.75), 'vertices': [(17.75, 20.75), (19.75, 20.75), (18.75, 18.75)]},
+        # Upper right:
+        {'name': 'Polygon', 'pos': (31.25, 6.25), 'vertices': [(30.25, 8.25), (32.25, 8.25), (31.25, 6.25)]},
+        {'name': 'Polygon', 'pos': (43.75, 6.25), 'vertices': [(42.75, 8.25), (44.75, 8.25), (43.75, 6.25)]},
+        {'name': 'Polygon', 'pos': (31.25, 18.75), 'vertices': [(30.25, 20.75), (32.25, 20.75), (31.25, 18.75)]},
+        {'name': 'Polygon', 'pos': (43.75, 18.75), 'vertices': [(42.75, 20.75), (44.75, 20.75), (43.75, 18.75)]},
+        # Lower left:
+        {'name': 'Polygon', 'pos': (6.25, 31.25), 'vertices': [(5, 33.25), (7, 33.25), (6, 31.25)]},
+        {'name': 'Polygon', 'pos': (18.75, 31.25), 'vertices': [(17.75, 33.25), (19.75, 33.25), (18.75, 31.25)]},
+        {'name': 'Polygon', 'pos': (6.25, 43.75), 'vertices': [(5, 45.75), (7, 45.75), (6, 43.75)]},
+        {'name': 'Polygon', 'pos': (18.75, 43.75), 'vertices': [(17.75, 45.75), (19.75, 45.75), (18.75, 43.75)]},
+        # Lower right:
+        {'name': 'Polygon', 'pos': (31.25, 31.25), 'vertices': [(30.25, 33.25), (32.25, 33.25), (31.25, 31.25)]},
+        {'name': 'Polygon', 'pos': (43.75, 31.25), 'vertices': [(42.75, 33.25), (44.75, 33.25), (43.75, 31.25)]},
+        {'name': 'Polygon', 'pos': (31.25, 43.75), 'vertices': [(30.25, 45.75), (32.25, 45.75), (31.25, 43.75)]},
+        {'name': 'Polygon', 'pos': (43.75, 43.75), 'vertices': [(42.75, 45.75), (44.75, 45.75), (43.75, 43.75)]},
+        # Upper 3 row:
+        {'name': 'Polygon', 'pos': (12.5, 12.5), 'vertices': [(11.5, 14.5), (13.5, 14.5), (12.5, 12.5)]},
+        {'name': 'Polygon', 'pos': (25.0, 12.5), 'vertices': [(24.0, 14.5), (26.0, 14.5), (25.0, 12.5)]},
+        {'name': 'Polygon', 'pos': (37.5, 12.5), 'vertices': [(36.5, 14.5), (38.5, 14.5), (37.5, 12.5)]},
+        # Middle 3 row:
+        {'name': 'Polygon', 'pos': (12.5, 25.0), 'vertices': [(11.5, 27.0), (13.5, 27.0), (12.5, 25.0)]},
+        {'name': 'Polygon', 'pos': (25.0, 25.0), 'vertices': [(24.0, 27.0), (26.0, 27.0), (25.0, 25.0)]},
+        {'name': 'Polygon', 'pos': (37.5, 25.0), 'vertices': [(36.5, 27.0), (38.5, 27.0), (37.5, 25.0)]},
+        # Lower 3 row:
+        {'name': 'Polygon', 'pos': (12.5, 37.5), 'vertices': [(11.5, 39.5), (13.5, 39.5), (12.5, 37.5)]},
+        {'name': 'Polygon', 'pos': (25.0, 37.5), 'vertices': [(24.0, 39.5), (26.0, 39.5), (25.0, 37.5)]},
+        {'name': 'Polygon', 'pos': (37.5, 37.5), 'vertices': [(36.5, 39.5), (38.5, 39.5), (37.5, 37.5)]},
+    ],
+    '25_triangles': [
+        # Upper left:
+        {'name': 'Polygon', 'pos': (6.25, 6.25), 'vertices': [(0, 0), (5, 0), (2.5, 5)]},
+        {'name': 'Polygon', 'pos': (18.75, 6.25), 'vertices': [(0, 0), (5, 0), (2.5, 5)]},
+        {'name': 'Polygon', 'pos': (6.25, 18.75), 'vertices': [(0, 0), (5, 0), (2.5, 5)]},
+        {'name': 'Polygon', 'pos': (18.75, 18.75), 'vertices': [(0, 0), (5, 0), (2.5, 5)]},
+        # Upper right:
+        {'name': 'Polygon', 'pos': (31.25, 6.25), 'vertices': [(0, 0), (5, 0), (2.5, 5)]},
+        {'name': 'Polygon', 'pos': (43.75, 6.25), 'vertices': [(0, 0), (5, 0), (2.5, 5)]},
+        {'name': 'Polygon', 'pos': (31.25, 18.75), 'vertices': [(0, 0), (5, 0), (2.5, 5)]},
+        {'name': 'Polygon', 'pos': (43.75, 18.75), 'vertices': [(0, 0), (5, 0), (2.5, 5)]},
+        # Lower left:
+        {'name': 'Polygon', 'pos': (6.25, 31.25), 'vertices': [(0, 0), (5, 0), (2.5, 5)]},
+        {'name': 'Polygon', 'pos': (18.75, 31.25), 'vertices': [(0, 0), (5, 0), (2.5, 5)]},
+        {'name': 'Polygon', 'pos': (6.25, 43.75), 'vertices': [(0, 0), (5, 0), (2.5, 5)]},
+        {'name': 'Polygon', 'pos': (18.75, 43.75), 'vertices': [(0, 0), (5, 0), (2.5, 5)]},
+        # Lower right:
+        {'name': 'Polygon', 'pos': (31.25, 31.25), 'vertices': [(0, 0), (5, 0), (2.5, 5)]},
+        {'name': 'Polygon', 'pos': (43.75, 31.25), 'vertices': [(0, 0), (5, 0), (2.5, 5)]},
+        {'name': 'Polygon', 'pos': (31.25, 43.75), 'vertices': [(0, 0), (5, 0), (2.5, 5)]},
+        {'name': 'Polygon', 'pos': (43.75, 43.75), 'vertices': [(0, 0), (5, 0), (2.5, 5)]},
+        # Upper 3 row:
+        {'name': 'Polygon', 'pos': (12.5, 12.5), 'vertices': [(0, 0), (5, 0), (2.5, 5)]},
+        {'name': 'Polygon', 'pos': (25.0, 12.5), 'vertices': [(0, 0), (5, 0), (2.5, 5)]},
+        {'name': 'Polygon', 'pos': (37.5, 12.5), 'vertices': [(0, 0), (5, 0), (2.5, 5)]},
+        # Middle 3 row:
+        {'name': 'Polygon', 'pos': (12.5, 25.0), 'vertices': [(0, 0), (5, 0), (2.5, 5)]},
+        {'name': 'Polygon', 'pos': (25.0, 25.0), 'vertices': [(0, 0), (5, 0), (2.5, 5)]},
+        {'name': 'Polygon', 'pos': (37.5, 25.0), 'vertices': [(0, 0), (5, 0), (2.5, 5)]},
+        # Lower 3 row:
+        {'name': 'Polygon', 'pos': (12.5, 37.5), 'vertices': [(0, 0), (5, 0), (2.5, 5)]},
+        {'name': 'Polygon', 'pos': (25.0, 37.5), 'vertices': [(0, 0), (5, 0), (2.5, 5)]},
+        {'name': 'Polygon', 'pos': (37.5, 37.5), 'vertices': [(0, 0), (5, 0), (2.5, 5)]},
+    ],
     'sparse_1':[
         {'name':'Circle', 'pos':(5.0, 5.0), 'radius':2.0},
         {'name':'Circle', 'pos':(10.0, 10.0), 'radius':5.0},
@@ -192,6 +294,41 @@ obstacle_l_dict = {
         {'name':'Rectangle', 'pos':(45.0, 5.0), 'height':5.0, 'width':5.0},
         {'name':'Rectangle', 'pos':(5.0, 45.0), 'height':5.0, 'width':5.0},
         {'name':'Rectangle', 'pos':(45.0, 45.0), 'height':5.0, 'width':5.0},
+    ],
+    'random_shapes_on_path': [
+        # Upper left - Rectangles, Triangles, and Circles:
+        {'name': 'Rectangle', 'pos': (2.0, 2.0), 'height': 3.0, 'width': 4.0},
+        {'name': 'Rectangle', 'pos': (12.0, 7.0), 'height': 2.5, 'width': 5.5},
+        {'name': 'Rectangle', 'pos': (22.0, 12.0), 'height': 2.0, 'width': 6.0},
+        {'name': 'Rectangle', 'pos': (4.0, 17.0), 'height': 2.5, 'width': 4.5},
+        {'name': 'Rectangle', 'pos': (15.0, 22.0), 'height': 3.0, 'width': 4.0},
+        {'name': 'Rectangle', 'pos': (26.0, 27.0), 'height': 2.5, 'width': 5.0},
+        
+        {'name': 'Polygon', 'pos': (7.0, 22.0), 'vertices': [(6, 25), (8, 25), (7, 22)]},
+        {'name': 'Polygon', 'pos': (17.0, 27.0), 'vertices': [(16, 30), (18, 30), (17, 27)]},
+        {'name': 'Polygon', 'pos': (27.0, 32.0), 'vertices': [(26, 35), (28, 35), (27, 32)]},
+        
+        {'name': 'Circle', 'pos': (12.0, 12.0), 'radius': 2.5},
+        {'name': 'Circle', 'pos': (22.0, 17.0), 'radius': 3.0},
+        {'name': 'Circle', 'pos': (32.0, 22.0), 'radius': 3.5},
+        {'name': 'Circle', 'pos': (42.0, 27.0), 'radius': 2.5},
+    
+        # Lower left - Rectangles, Triangles, and Circles:
+        {'name': 'Rectangle', 'pos': (2.0, 32.0), 'height': 3.0, 'width': 4.0},
+        {'name': 'Rectangle', 'pos': (12.0, 37.0), 'height': 2.5, 'width': 5.5},
+        {'name': 'Rectangle', 'pos': (22.0, 42.0), 'height': 2.0, 'width': 6.0},
+        {'name': 'Rectangle', 'pos': (4.0, 47.0), 'height': 2.5, 'width': 4.5},
+        {'name': 'Rectangle', 'pos': (15.0, 52.0), 'height': 3.0, 'width': 4.0},
+        {'name': 'Rectangle', 'pos': (26.0, 57.0), 'height': 2.5, 'width': 5.0},
+        
+        {'name': 'Polygon', 'pos': (7.0, 52.0), 'vertices': [(6, 55), (8, 55), (7, 52)]},
+        {'name': 'Polygon', 'pos': (17.0, 57.0), 'vertices': [(16, 60), (18, 60), (17, 57)]},
+        {'name': 'Polygon', 'pos': (27.0, 62.0), 'vertices': [(26, 65), (28, 65), (27, 62)]},
+        
+        {'name': 'Circle', 'pos': (12.0, 42.0), 'radius': 2.5},
+        {'name': 'Circle', 'pos': (22.0, 47.0), 'radius': 3.0},
+        {'name': 'Circle', 'pos': (32.0, 52.0), 'radius': 3.5},
+        {'name': 'Circle', 'pos': (42.0, 57.0), 'radius': 2.5},
     ],
     'small_U': [
         {'name':'Rectangle', 'pos':(17.5+12.5, 12.5+12.5), 'height':20.0, 'width':1.5},

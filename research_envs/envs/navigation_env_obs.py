@@ -2,7 +2,6 @@ import gymnasium as gym
 from gymnasium import spaces
 import numpy as np
 from collections import deque
-from Box2D import b2Vec2
 
 from research_envs.b2PushWorld.NavigationWorld import NavigationWorld, NavigationWorldConfig
 
@@ -20,44 +19,29 @@ class NavigationEnv(gym.Env):
     def __init__(self, config: NavigationEnvConfig = NavigationEnvConfig()):
         self.config = config
         self.world = NavigationWorld(config.world_config)
-
-        self.agent_type = config.world_config.agent_type
-        if config.world_config.agent_type == 'discrete':
-            self.action_space = spaces.Discrete(self.world.agent.directions)
-        elif config.world_config.agent_type == 'continuous':
-            self.action_space = spaces.Box(
-            low=-1.0, high=1.0, shape=(2,), dtype=np.float32)
-        else:
-            print('Agent type not implemented in env: ', config.world_config.agent_type)
-            return
+        self.action_space = spaces.Discrete(8)
 
         # Observation: Laser + agent to final goal vector
         n_rays = config.world_config.n_rays
         # Observation Queue
-        # self.prev_obs_queue = deque(maxlen=config.previous_obs_queue_len)
+        self.prev_obs_queue = deque(maxlen=config.previous_obs_queue_len)
+        self.prev_action_queue = deque(maxlen=config.previous_obs_queue_len)
+        self.prev_obs_len = config.previous_obs_queue_len * (n_rays+2)
+        self.prev_act_len = config.previous_obs_queue_len
+        self.observation_shape = (
+            n_rays+2 + self.prev_obs_len + self.prev_act_len,
+        )
+        self.observation_space = spaces.Box(
+            low=-np.inf, high=np.inf, shape=self.observation_shape, dtype=np.float32)
+        
+        # # Action only queue
         # self.prev_action_queue = deque(maxlen=config.previous_obs_queue_len)
-        # self.prev_obs_len = config.previous_obs_queue_len * (n_rays+2)
         # self.prev_act_len = config.previous_obs_queue_len
         # self.observation_shape = (
-        #     n_rays+2 + self.prev_obs_len + self.prev_act_len,
+        #     n_rays+2 + self.prev_act_len,
         # )
         # self.observation_space = spaces.Box(
         #     low=-np.inf, high=np.inf, shape=self.observation_shape, dtype=np.float32)
-        
-        # Action only queue
-        self.prev_action_queue = deque(maxlen=config.previous_obs_queue_len)
-        self.prev_act_len = config.previous_obs_queue_len
-        if self.agent_type == 'discrete':
-            self.observation_shape = (
-                n_rays+2 + self.prev_act_len,
-            )
-        elif self.agent_type == 'continuous':
-            self.observation_shape = (
-                n_rays+2 + 2*self.prev_act_len,
-            )
-
-        self.observation_space = spaces.Box(
-            low=-np.inf, high=np.inf, shape=self.observation_shape, dtype=np.float32)
 
         self.max_steps = config.max_steps
         self.step_count = 0
@@ -78,29 +62,22 @@ class NavigationEnv(gym.Env):
     def _gen_observation(self):
         cur_obs = self._gen_current_observation()
 
-        # prev_obs = np.zeros(self.prev_obs_len)
-        # aux = []
-        # for obs in reversed(self.prev_obs_queue):
-        #     aux += list(obs)
-        # prev_obs[:len(aux)] = aux
+        prev_obs = np.zeros(self.prev_obs_len)
+        aux = []
+        for obs in reversed(self.prev_obs_queue):
+            aux += list(obs)
+        prev_obs[:len(aux)] = aux
 
-        if self.agent_type == 'discrete':
-            prev_act = np.zeros(self.prev_act_len)
-            aux = [
-                (a+1)/(self.action_space.n+1) # Avoid a = 0
-                for a in reversed(self.prev_action_queue)
-            ]
-            prev_act[:len(aux)] = aux
-        elif self.agent_type == 'continuous':
-            prev_act = np.zeros(2*self.prev_act_len)
+        prev_act = np.zeros(self.prev_act_len)
+        aux = [
+            (a+1)/(self.action_space.n+1) # Avoid a = 0
+            for a in reversed(self.prev_action_queue)
+        ]
+        prev_act[:len(aux)] = aux
 
-            for i, a in enumerate(reversed(self.prev_action_queue)):
-                prev_act[2*i] = a.x
-                prev_act[2*i+1] = a.y
-
-        obs = np.concatenate([cur_obs, prev_act], dtype=np.float32)
-        # obs = np.concatenate([cur_obs, prev_obs, prev_act])
-        # self.prev_obs_queue.append(cur_obs)
+        # obs = np.concatenate([cur_obs, prev_act], dtype=np.float32)
+        obs = np.concatenate([cur_obs, prev_obs, prev_act])
+        self.prev_obs_queue.append(cur_obs)
         return obs
 
     def _calc_reward(self):
@@ -117,9 +94,6 @@ class NavigationEnv(gym.Env):
 
     def step(self, action):
         # (observation, reward, terminated, truncated, info)
-        if self.agent_type == 'continuous':
-            action = b2Vec2(float(action[0]), float(action[1]))
-
         self.prev_action_queue.append(action)
         self.last_dist = self.world.agent_to_goal_vector().length
 
@@ -144,7 +118,7 @@ class NavigationEnv(gym.Env):
         self.step_count = 0
 
         self.prev_action_queue.clear()
-        # self.prev_obs_queue.clear()
+        self.prev_obs_queue.clear()
         self.last_dist = self.world.agent_to_goal_vector().length
         return self._gen_observation(), {}
 

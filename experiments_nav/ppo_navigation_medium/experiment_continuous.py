@@ -16,6 +16,7 @@ config = NavigationEnvConfig(
         obstacle_l = [],
         n_rays = 24,
         range_max = 25.0,
+        agent_type='continuous',
         agent_force_length=1.0
     ),
     max_steps = 300,
@@ -54,9 +55,10 @@ policy_kwargs = dict(activation_fn=torch.nn.ReLU,
 
 model = PPO(
     "MlpPolicy", env,
-    ent_coef=0.01,
+    ent_coef=0.03,
     policy_kwargs=policy_kwargs,
     verbose=1, tensorboard_log="./tensorboard_dir/")
+print(model.policy)
 
 # Create dir 
 ckp_dir = 'model_ckp'
@@ -72,17 +74,10 @@ eval_callback = EvalCallback(eval_env, best_model_save_path=eval_log_dir,
                               n_eval_episodes=400, deterministic=True,
                               render=False)
 
-
-name = 'ppo_no_progress_3_512_prev_actions_10'
+name = 'ppo_continous_act_ent_coef_03'
 
 model.learn(
     total_timesteps=5000000, log_interval=10, progress_bar=True, reset_num_timesteps=True,
     callback=eval_callback,
     tb_log_name=name)
 model.save(os.path.join(ckp_dir, name))
-# for i in range(1, 20):
-#     model.learn(
-#         total_timesteps=250000, log_interval=10, progress_bar=True, reset_num_timesteps=False,
-#         callback=eval_callback,
-#         tb_log_name=name)
-#     model.save(os.path.join(ckp_dir, "model_ckp_"+str(i)))

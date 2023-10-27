@@ -9,6 +9,8 @@ from research_envs.cv_buffer.CvDrawBuffer import CvDrawBuffer
 
 import cv2
 
+from Box2D import b2Vec2
+
 # def key_to_action(key):
 #     action = -1
 #     if key == 97: # a
@@ -20,24 +22,55 @@ import cv2
 #     elif key  == 119: # w
 #         action = 6
 #     return action
+# def key_to_action(key):
+#     action = -1
+#     if key == 113: #q
+#         action = 5
+#     elif key == 119: # w
+#         action = 6
+#     elif key == 101: # e
+#         action = 7
+#     elif key == 100: # d
+#         action = 0
+#     elif key == 99: # c
+#         action = 1
+#     elif key == 120: # x
+#         action = 2
+#     elif key == 122: # z
+#         action = 3
+#     elif key == 97: # a
+#         action = 4
+#     return action
+# def key_to_action(key):
+#     action = -1
+#     if key == 97: # a
+#         action = b2Vec2(-1, 0)
+#     elif key == 115: # s
+#         action = b2Vec2(0, 1)
+#     elif key == 100: # d
+#         action = b2Vec2(1, 0)
+#     elif key  == 119: # w
+#         action = b2Vec2(0, -1)
+#     return action
+
 def key_to_action(key):
     action = -1
     if key == 113: #q
-        action = 5
+        action = b2Vec2(-0.5, -0.5)
     elif key == 119: # w
-        action = 6
+        action = b2Vec2(0, -1)
     elif key == 101: # e
-        action = 7
+        action = b2Vec2(0.5, -0.5)
     elif key == 100: # d
-        action = 0
+        action = b2Vec2(1, 0)
     elif key == 99: # c
-        action = 1
+        action = b2Vec2(0.5, 0.5)
     elif key == 120: # x
-        action = 2
+        action = b2Vec2(0, 1)
     elif key == 122: # z
-        action = 3
+        action = b2Vec2(-0.5, 0.5)
     elif key == 97: # a
-        action = 4
+        action = b2Vec2(-1, 0)
     return action
 
 
@@ -51,9 +84,10 @@ if __name__ == "__main__":
     config = NavigationEnvConfig(
         world_config= NavigationWorldConfig(
             obstacle_l = [],
-            n_rays = 24,
-            range_max = 5.0,
-            agent_force_length = 1.0
+            n_rays = 8,
+            range_max = 25.0,
+            agent_force_length = 1.0,
+            agent_type = 'continuous'
         ),
         max_steps=200,
         previous_obs_queue_len=3
@@ -61,7 +95,7 @@ if __name__ == "__main__":
     obs_l_dict = {
         k: obstacle_l_dict[k] 
         for k in [
-            '49_circles',
+            'random_shapes_on_path',
             # 'circle_line', 'small_4_circles',
             # '4_circles', 'sparse_1', 'sparse_2',
             # '1_circle', '1_rectangle', '1_triangle',
@@ -99,7 +133,7 @@ if __name__ == "__main__":
         key = 0xFF & cv2.waitKey(int(dt * 1000.0)) # Sets default key = 255
         if key == 27: break # Esc key
         action = key_to_action(key)
-        if action != -1:
+        if type(action) == b2Vec2 or action != -1:
             observation, reward, terminated, truncated, info = env.step(action)
             render()
             # print('Pos:', env.cur_env.world.agent.agent_rigid_body.position)

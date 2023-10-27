@@ -10,7 +10,7 @@ pip install -r requirements_freeze.txt
 Objetivo final: Mapless Transportation: Ter uma política de RL capaz de levar um objeto circular e um retangular para um goal em um ambiente simples com obstáculos. => Definir melhor o que é um ambiente simples.
 
 Passos:
-- Voltar para o navigation => fazer funcionar nos mapas de pushing.
+- Navigation está ok. AInda tem o stuck, mas a solução deve ser tunar o PPO. Então vmaos par ao transportation.
 
 
 Mapless navigation easy mode:
