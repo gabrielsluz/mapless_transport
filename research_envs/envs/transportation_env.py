@@ -20,7 +20,7 @@ class TransportationEnv(gym.Env):
     def __init__(self, config: TransportationEnvConfig = TransportationEnvConfig()):
         self.config = config
         self.world = TransportationWorld(config.world_config)
-        self.action_space = spaces.Discrete(8)
+        self.action_space = spaces.Discrete(self.world.agent.directions)
 
         # Observation: Laser + agent to final goal vector
         n_rays = config.world_config.n_rays
@@ -53,8 +53,7 @@ class TransportationEnv(gym.Env):
     def _gen_current_observation(self):
         range_l, _, _ = self.world.get_laser_readings()
         laser_readings = np.array(range_l) / (self.world.range_max)
-        # laser_readings = np.array(range_l) / (self.world.range_max*0.2)
-        
+
         # laser_readings = []
         # _, _, point_l = self.world.get_laser_readings()
         # agent_pos = self.world.agent.agent_rigid_body.position
@@ -112,8 +111,8 @@ class TransportationEnv(gym.Env):
         # Reward based on the progress of the agent towards the goal	
         # Limits the maximum reward to [-1.0, 1.0] (except for success or death)
         progress_reward = 0.0
-        success_reward = 20.0	
-        death_penalty = -1.0	
+        success_reward = 100.0	
+        death_penalty = -100.0	
         time_penalty = -0.01	
 
         # Success
@@ -131,11 +130,13 @@ class TransportationEnv(gym.Env):
         return progress_reward + time_penalty
 
     # def _calc_reward(self):
+    #     # Success
+    #     if self._check_success():
+    #         return 100.0
     #     # Death
     #     if self._check_death():
-    #         return -20
-    #     else:
-    #         return 0.0
+    #         return -100
+    #     return -0.01
 
     def step(self, action):
         # (observation, reward, terminated, truncated, info)

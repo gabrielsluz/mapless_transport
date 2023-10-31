@@ -3,3 +3,4 @@ box2d-py==2.3.8
 gym==0.26.2
 gymnasium[classic-control]==0.29.1
 stable-baselines3[extra]==2.1.0
+shapely==2.0.2
