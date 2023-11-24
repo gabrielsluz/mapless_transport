@@ -53,7 +53,9 @@ if __name__ == "__main__":
     config = TransportationEnvConfig(
         world_config= TransportationWorldConfig(
             obstacle_l = [],
-            object_l=[{'name':'Circle', 'radius':2.0}],
+            object_l=[
+                {'name':'Circle', 'radius':4.0}
+            ],
             n_rays = 1,
             range_max = 25.0,
             force_length=1.0
@@ -64,7 +66,7 @@ if __name__ == "__main__":
     obs_l_dict = {
         k: obstacle_l_dict[k] 
         for k in [
-            'sparse_2'
+            'sparse_1'
         #     'empty', 'frame', 'horizontal_corridor', 'vertical_corridor','4_circles_wide',
         # '1_circle', '1_rectangle', '1_triangle'
             # 'circle_line', 'small_4_circles',

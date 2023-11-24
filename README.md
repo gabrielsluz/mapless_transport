@@ -9,19 +9,25 @@ pip install -r requirements_freeze.txt
 
 Objetivo final: Mapless Transportation: Ter uma política de RL capaz de levar um objeto circular e um retangular para um goal em um ambiente simples com obstáculos. => Definir melhor o que é um ambiente simples.
 
-Passos:
-- Navigation está ok. AInda tem o stuck, mas a solução deve ser tunar o PPO. Então vmaos par ao transportation.
+
+Plano Geral:
+- Resolver navegação com RL:
+    - Entender o problema: revisão da literatura, definir premissas, etc...
+    - Implementar um método sem RL.
+    - Implementar com RL e comparar.
+- Mapless transportation com círculo.
 
 
-Mapless navigation easy mode:
-- Cenários em que Campos Pontenciais atingem pontuação máxima.
-    - Copiar o range e o número de lasers.
-    - Force length
-    - Número de ações
+TODO:
+- Write a section with results:
+    - Definir melhor o problema: Local planning and obstacle avoidance.
+    - DO literature research => find current state of the art and understand the problem.
+    - Design the obstacle maps and environment with realistic scale.
+    - Read VFH paper and implement it.
+    - Use ideas from it to implement a RL solution. Compare:
+        - VFH x RL+VFH x RL x Potential Fields
 
 
-Pushing:
-- Observacao: goal e centro do objeto (circular)
 
 
 ## Como resolver o problema de uma forma abstrata?
