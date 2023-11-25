@@ -66,7 +66,7 @@ if __name__ == "__main__":
     obs_l_dict = {
         k: obstacle_l_dict[k] 
         for k in [
-            'sparse_1'
+            'empty'
         #     'empty', 'frame', 'horizontal_corridor', 'vertical_corridor','4_circles_wide',
         # '1_circle', '1_rectangle', '1_triangle'
             # 'circle_line', 'small_4_circles',
