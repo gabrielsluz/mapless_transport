@@ -11,7 +11,7 @@ import cv2
 import numpy as np
 
 # def key_to_action(key):
-#     action = -1
+#     action = None
 #     if key == 97: # a
 #         action = 4
 #     elif key == 115: # s
@@ -21,8 +21,9 @@ import numpy as np
 #     elif key  == 119: # w
 #         action = 6
 #     return action
+
 def key_to_action(key):
-    action = -1
+    action = None
     if key == 113: #q
         action = 5
     elif key == 119: # w
@@ -54,7 +55,8 @@ if __name__ == "__main__":
         world_config= TransportationWorldConfig(
             obstacle_l = [],
             object_l=[
-                {'name':'Circle', 'radius':4.0}
+                # {'name':'Circle', 'radius':4.0}
+                {'name': 'Rectangle', 'pos': (12.5, 25.0), 'height': 2.0, 'width': 5.0}
             ],
             n_rays = 1,
             range_max = 25.0,
@@ -101,7 +103,7 @@ if __name__ == "__main__":
         key = 0xFF & cv2.waitKey(int(dt * 1000.0)) # Sets default key = 255
         if key == 27: break # Esc key
         action = key_to_action(key)
-        if action != -1:
+        if not action is None:
             observation, reward, terminated, truncated, info = env.step(action)
             render()
             # print('Pos:', env.cur_env.world.agent.agent_rigid_body.position)

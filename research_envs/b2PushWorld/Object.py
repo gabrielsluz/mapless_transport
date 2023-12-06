@@ -57,6 +57,7 @@ class RectangleObj(Object):
         self.height = height
         self.width = width
         self.obj_shape = b2PolygonShape(box=(width/2, height/2))
+        self.obj_radius = math.sqrt((width/2)**2 + (height/2)**2)
         super().__init__(simulator, x, y)
 
     def Draw(self, pixels_per_meter, image, color, thickness):
