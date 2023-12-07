@@ -77,7 +77,8 @@ if __name__ == "__main__":
             obstacle_l = [],
             object_l=[
                 # {'name':'Circle', 'radius':4.0}
-                {'name': 'Rectangle', 'height': 10.0, 'width': 5.0}
+                # {'name': 'Rectangle', 'height': 10.0, 'width': 5.0}
+                {'name': 'ConcavePolygon', 'vertices':[[-4, -2], [4, -2], [4, 6], [2, 6], [2, 2], [-4, 2]]}
             ],
             n_rays = 0,
             range_max = 25.0,

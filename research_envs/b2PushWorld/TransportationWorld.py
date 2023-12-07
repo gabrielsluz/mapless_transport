@@ -9,7 +9,7 @@ import random
 import dataclasses
 
 from research_envs.b2PushWorld.Obstacle import CircleObs, RectangleObs, PolygonalObs
-from research_envs.b2PushWorld.Object import CircleObj, RectangleObj, PolygonalObj
+from research_envs.b2PushWorld.Object import CircleObj, RectangleObj, PolygonalObj, ConcavePolygonObj
 from research_envs.b2PushWorld.Agent import Agent
 from research_envs.b2PushWorld.AgentDirection import AgentDirection
 
@@ -151,6 +151,9 @@ class TransportationWorld:
             elif obj_spec['name'] == 'Polygon':
                 self.obj_l.append(
                     PolygonalObj(simulator=self, vertices=obj_spec['vertices']))
+            elif obj_spec['name'] == 'ConcavePolygon':
+                self.obj_l.append(
+                    ConcavePolygonObj(simulator=self, vertices=obj_spec['vertices']))
             else:
                 raise ValueError('Unknown object type')
         self.obj = self.obj_l[random.randrange(0, len(self.obj_l))]
