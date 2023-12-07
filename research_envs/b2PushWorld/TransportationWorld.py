@@ -273,6 +273,8 @@ class TransportationWorld:
 
     # ----------- Laser Sensor -----------
     def get_laser_readings(self):
+        if self.n_rays == 0:
+            return [], [], []
         ang_inc = (self.ang_max - self.ang_min) / self.n_rays
 
         range_l = []
@@ -307,6 +309,8 @@ class TransportationWorld:
         return range_l, type_l, point_l
 
     def get_laser_readings_from_point(self, point1):
+        if self.n_rays == 0:
+            return [], [], []
         ang_inc = (self.ang_max - self.ang_min) / self.n_rays
 
         range_l = []

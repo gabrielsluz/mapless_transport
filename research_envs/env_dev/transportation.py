@@ -9,6 +9,7 @@ from research_envs.cv_buffer.CvDrawBuffer import CvDrawBuffer
 
 import cv2
 import numpy as np
+from Box2D import b2Vec2
 
 # def key_to_action(key):
 #     action = None
@@ -22,24 +23,44 @@ import numpy as np
 #         action = 6
 #     return action
 
+# def key_to_action(key):
+#     action = None
+#     if key == 113: #q
+#         action = 5
+#     elif key == 119: # w
+#         action = 6
+#     elif key == 101: # e
+#         action = 7
+#     elif key == 100: # d
+#         action = 0
+#     elif key == 99: # c
+#         action = 1
+#     elif key == 120: # x
+#         action = 2
+#     elif key == 122: # z
+#         action = 3
+#     elif key == 97: # a
+#         action = 4
+#     return action
+
 def key_to_action(key):
     action = None
     if key == 113: #q
-        action = 5
+        action = np.array([-1/np.sqrt(2), -1/np.sqrt(2)])
     elif key == 119: # w
-        action = 6
+        action = np.array([0.0, -1.0])
     elif key == 101: # e
-        action = 7
+        action = np.array([1/np.sqrt(2), -1/np.sqrt(2)])
     elif key == 100: # d
-        action = 0
+        action = np.array([1.0, 0.0])
     elif key == 99: # c
-        action = 1
+        action = np.array([1/np.sqrt(2), 1/np.sqrt(2)])
     elif key == 120: # x
-        action = 2
+        action = np.array([0.0, 1.0])
     elif key == 122: # z
-        action = 3
+        action = np.array([-1/np.sqrt(2), 1/np.sqrt(2)])
     elif key == 97: # a
-        action = 4
+        action = np.array([-1.0, 0.0])
     return action
 
 
@@ -56,10 +77,11 @@ if __name__ == "__main__":
             obstacle_l = [],
             object_l=[
                 # {'name':'Circle', 'radius':4.0}
-                {'name': 'Rectangle', 'pos': (12.5, 25.0), 'height': 2.0, 'width': 5.0}
+                {'name': 'Rectangle', 'height': 10.0, 'width': 5.0}
             ],
-            n_rays = 1,
+            n_rays = 0,
             range_max = 25.0,
+            agent_type = 'continuous',
             force_length=1.0
         ),
         max_steps=200,

@@ -1,6 +1,7 @@
 import gymnasium as gym
 from gymnasium import spaces
 import numpy as np
+import math
 from collections import deque
 from Box2D import b2Vec2
 
@@ -20,7 +21,11 @@ class TransportationEnv(gym.Env):
     def __init__(self, config: TransportationEnvConfig = TransportationEnvConfig()):
         self.config = config
         self.world = TransportationWorld(config.world_config)
-        self.action_space = spaces.Discrete(self.world.agent.directions)
+        if config.world_config.agent_type == 'discrete':
+            self.action_space = spaces.Discrete(self.world.agent.directions)
+        elif config.world_config.agent_type == 'continuous':
+            self.action_space = spaces.Box(
+                low=-1, high=1, shape=(2,), dtype=np.float32)
 
         # Observation: Laser + agent to final goal vector
         n_rays = config.world_config.n_rays
@@ -37,14 +42,21 @@ class TransportationEnv(gym.Env):
         
         # Action only queue
         self.prev_action_queue = deque(maxlen=config.previous_obs_queue_len)
-        self.prev_act_len = config.previous_obs_queue_len
+
+        if config.world_config.agent_type == 'discrete':
+            self.prev_act_len = config.previous_obs_queue_len
+        elif config.world_config.agent_type == 'continuous':
+            self.prev_act_len = config.previous_obs_queue_len*2
+
+
         self.observation_shape = (
-            n_rays+4 + self.prev_act_len,
+            n_rays + 5 + self.prev_act_len,
         )
         self.observation_space = spaces.Box(
             low=-np.inf, high=np.inf, shape=self.observation_shape, dtype=np.float32)
 
         self.max_obj_dist = self.world.max_obj_dist
+        self.max_goal_dist = max(self.world.width, self.world.height)
 
         self.max_steps = config.max_steps
         self.step_count = 0
@@ -62,19 +74,24 @@ class TransportationEnv(gym.Env):
         #     # laser_readings.append(np.arctan2(agent_to_p[1], agent_to_p[0])/np.pi)
         #     laser_readings.append(agent_to_p.length / self.world.range_max)
 
-        
+        # angle, dist
         agent_to_goal = self.world.agent_to_goal_vector()
         # Calc angle between agent_to_goal and x-axis
         angle = np.arctan2(agent_to_goal[1], agent_to_goal[0])
         goal_obs = np.array([
-            angle/np.pi, min(agent_to_goal.length/50.0, 1.0)
+            angle/np.pi, min(agent_to_goal.length/self.max_goal_dist, 1.0)
             ])
+        
+        # angle, dist, object angle
+        obj_angle = math.fmod(self.world.obj.obj_rigid_body.angle, 2*math.pi)
+        if obj_angle < 0.0: obj_angle += 2*math.pi
+        obj_angle = obj_angle / (2*math.pi)
         
         agent_to_obj = self.world.agent_to_object_vector()
         # Calc angle between agent_to_obj and x-axis
         angle = np.arctan2(agent_to_obj[1], agent_to_obj[0])
         obj_obs = np.array([
-            angle/np.pi, min(agent_to_obj.length/self.max_obj_dist, 1.0)
+            angle/np.pi, min(agent_to_obj.length/self.max_obj_dist, 1.0), obj_angle
             ])
 
         return np.concatenate((laser_readings, goal_obs, obj_obs), dtype=np.float32)

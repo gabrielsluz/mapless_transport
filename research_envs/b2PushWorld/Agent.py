@@ -24,7 +24,7 @@ class Agent:
         # them later
         # self.box_def         = b2BodyDef(position = (1,1))
         # self.box_rigid_body  = self.world.CreateBody(self.box_def)
-        self.agent_rigid_body  = simulator.world.CreateDynamicBody(position=(x,y))
+        self.agent_rigid_body  = simulator.world.CreateDynamicBody(position=(x,y), fixedRotation=True)
         self.agent_rigid_body.userData = {'type': 'agent'} # For collision detection
 
         # ----------- Body configuration ------------

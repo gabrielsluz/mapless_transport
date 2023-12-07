@@ -22,13 +22,13 @@ class AgentDirection:
         # them later
         # self.box_def         = b2BodyDef(position = (1,1))
         # self.box_rigid_body  = self.world.CreateBody(self.box_def)
-        self.agent_rigid_body  = simulator.world.CreateDynamicBody(position=(x,y))
+        self.agent_rigid_body  = simulator.world.CreateDynamicBody(position=(x,y), fixedRotation=True)
         self.agent_rigid_body.userData = {'type': 'agent'} # For collision detection
 
         # ----------- Body configuration ------------
         self.agent_radius = radius
         self.agent_shape = b2CircleShape(radius=self.agent_radius)
-        self.agent_fixture_def = b2FixtureDef(shape=self.agent_shape, density=1, friction=0.0)
+        self.agent_fixture_def = b2FixtureDef(shape=self.agent_shape, density=1, friction=0.2)
         self.agent_rigid_body.CreateFixture(self.agent_fixture_def)
         self.last_agent_pos = b2Vec2(x,y)
 
@@ -48,6 +48,7 @@ class AgentDirection:
         if np.linalg.norm(force) > 0:
             force = force / np.linalg.norm(force)
         self.current_obj = self.agent_rigid_body.position + (force * self.force_length)
+        self.current_obj = b2Vec2(self.current_obj)
         self.state = 1
 
         self.cur_action_steps = 0
