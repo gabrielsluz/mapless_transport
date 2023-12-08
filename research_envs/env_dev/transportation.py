@@ -78,7 +78,12 @@ if __name__ == "__main__":
             object_l=[
                 # {'name':'Circle', 'radius':4.0}
                 # {'name': 'Rectangle', 'height': 10.0, 'width': 5.0}
-                {'name': 'ConcavePolygon', 'vertices':[[-4, -2], [4, -2], [4, 6], [2, 6], [2, 2], [-4, 2]]}
+                # {'name': 'ConcavePolygon', 'vertices':[[-4, -2], [4, -2], [4, 6], [2, 6], [2, 2], [-4, 2]]}
+                # {'name': 'ConcavePolygon', 'vertices':[
+                #     [4.0, 10.0], [2.0, 6.0], [0.0, 6.0], [1.0, 3.0], [0.0, 2.0], [2.0, 2.0], [4.0, 0.0],
+                #     [6.0, 2.0], [8.0, 2.0], [7.0, 3.0], [8.0, 6.0], [6.0, 6.0], [4.0, 10.0]
+                # ]}
+                {'name': 'MultiPolygons', 'poly_vertices_l':[[[0, 0], [0, 2], [6, 2], [6, 0]], [[0, 2], [0, 4], [4, 4], [4,2]]]}
             ],
             n_rays = 0,
             range_max = 25.0,

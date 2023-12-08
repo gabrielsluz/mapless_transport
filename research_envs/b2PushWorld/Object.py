@@ -5,6 +5,8 @@ import numpy as np
 
 from research_envs.b2PushWorld.utils.poly_decomp import polygonDecomp
 
+import shapely
+
 class Object:
     # Inheritance: __init__ from derivated class must fill:
     #   obj_type, and obj_shape
@@ -104,6 +106,91 @@ class PolygonalObj(Object):
 
 # Dev
 
+class MultiPolygonsObj:
+    def __init__(self,  poly_vertices_l, simulator = None, x = 0, y = 0):
+        # poly_vertices_l: [[[0, 0], [1, 1], [0, 2]], [[0, 0], [-2, 0], [-1, -1]]]
+        # Vertices in counterclockwise
+        # Adjusts such that centroid is in the center (0,0)
+        self.obj_type = 'MultiPolygons'
+
+        # Centralize
+        aux_l = [
+            (vertices, []) for vertices in poly_vertices_l
+        ]
+        multi_poly = shapely.MultiPolygon(aux_l)
+        c = shapely.centroid(multi_poly)
+        c_x = shapely.get_x(c)
+        c_y = shapely.get_y(c)
+
+        aux_l = []
+        for vertices in poly_vertices_l:
+            aux_l.append(
+                [[v[0] - c_x, v[1] - c_y] for v in vertices]
+            )
+        poly_vertices_l = aux_l
+
+        # Compute radius
+        max_d = -1
+        for vertices in poly_vertices_l:
+            for v in vertices:
+                d = math.sqrt(v[0]**2 + v[1]**2)
+                if d > max_d: max_d = d
+        self.obj_radius = max_d
+
+        body = simulator.world.CreateDynamicBody(
+            position=(x, y),
+            linearDamping = 2.0,
+            angularDamping = 5.0        
+        )
+        body.userData = {'type': 'object'}
+
+        for vertices in poly_vertices_l:
+            body.CreateFixture(
+                b2FixtureDef(
+                    shape=b2PolygonShape(vertices=vertices), 
+                    density=1, friction=0.3))
+
+        print("CoM:", body.localCenter) # Should be very close to (0, 0)
+
+        self.obj_rigid_body = body
+        self.last_obj_pos = self.obj_rigid_body.position
+
+    def UpdateLastPos(self):
+        self.last_obj_pos = self.obj_rigid_body.position.copy()
+
+    def Update(self):
+        self.obj_rigid_body.linearVelocity = self.obj_rigid_body.linearVelocity * 0.98
+
+    def GetPositionAsList(self):
+        return (self.obj_rigid_body.position[0], self.obj_rigid_body.position[1])
+
+    def worldToScreen(self, position, pixels_per_meter):
+        return (int(position[0] * pixels_per_meter), int(position[1] * pixels_per_meter))
+
+
+    def Draw(self, pixels_per_meter, image, color, thickness):
+        body = self.obj_rigid_body
+        for f_i in range(len(body.fixtures)):
+            vertices = [(body.transform * v) for v in body.fixtures[f_i].shape.vertices]
+            vertices = [self.worldToScreen(v, pixels_per_meter) for v in vertices]
+            cv2.fillPoly(image, [np.array(vertices)], color)
+        
+        # Aux:
+        v = body.worldCenter
+        v = self.worldToScreen(v, pixels_per_meter)
+        cv2.circle(image, v, 10, (1, 0, 0, 0), 5)
+
+    def DrawInPos(self, screen_pos, pixels_per_meter, image, color, thickness):
+        body = self.obj_rigid_body
+        for f_i in range(len(body.fixtures)):
+            # Only rotate
+            vertices = [(body.transform.q * v) for v in body.fixtures[f_i].shape.vertices]
+            vertices = [self.worldToScreen(v, pixels_per_meter) for v in vertices]
+            # Translate
+            vertices = [(v[0]+screen_pos[0], v[1]+screen_pos[1]) for v in vertices]
+            cv2.fillPoly(image, [np.array(vertices)], color)
+
+
 class ConcavePolygonObj:
     def _compute_centroid(self, vertices):
         # https://paulbourke.net/geometry/polygonmesh/
@@ -159,7 +246,8 @@ class ConcavePolygonObj:
                     shape=b2PolygonShape(vertices=poly_l[p_i]), 
                     density=1, friction=0.3))
 
-        # print("CoM:", body.localCenter) # Should be very close to (0, 0)
+        print("CoM:", body.localCenter) # Should be very close to (0, 0)
+        print(poly_l)
 
         self.obj_rigid_body = body
         self.last_obj_pos = self.obj_rigid_body.position
