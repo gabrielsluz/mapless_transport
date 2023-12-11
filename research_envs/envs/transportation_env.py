@@ -25,7 +25,7 @@ class TransportationEnv(gym.Env):
             self.action_space = spaces.Discrete(self.world.agent.directions)
         elif config.world_config.agent_type == 'continuous':
             self.action_space = spaces.Box(
-                low=-1, high=1, shape=(2,), dtype=np.float32)
+                low=0, high=1, shape=(2,), dtype=np.float32)
 
         # Observation: Laser + agent to final goal vector
         n_rays = config.world_config.n_rays

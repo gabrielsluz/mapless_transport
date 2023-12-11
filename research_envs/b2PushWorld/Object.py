@@ -87,6 +87,13 @@ class PolygonalObj(Object):
         centroid = aux_obj_shape.centroid
         vertices = [(v[0]-centroid[0], v[1]-centroid[1]) for v in vertices]
         self.obj_shape = b2PolygonShape(vertices=vertices)
+        # Compute radius
+        max_d = -1
+        for v in vertices:
+            d = math.sqrt(v[0]**2 + v[1]**2)
+            if d > max_d: max_d = d
+        self.obj_radius = max_d
+
         super().__init__(simulator, x, y)
 
     def Draw(self, pixels_per_meter, image, color, thickness):
@@ -103,10 +110,8 @@ class PolygonalObj(Object):
         cv2.fillPoly(image, [np.array(vertices)], color)
 
 
-
-# Dev
-
 class MultiPolygonsObj:
+    # To partition a simple polygon into convex parts use: https://github.com/ivanfratric/polypartition/tree/master
     def __init__(self,  poly_vertices_l, simulator = None, x = 0, y = 0):
         # poly_vertices_l: [[[0, 0], [1, 1], [0, 2]], [[0, 0], [-2, 0], [-1, -1]]]
         # Vertices in counterclockwise
@@ -190,6 +195,7 @@ class MultiPolygonsObj:
             vertices = [(v[0]+screen_pos[0], v[1]+screen_pos[1]) for v in vertices]
             cv2.fillPoly(image, [np.array(vertices)], color)
 
+# Dev
 
 class ConcavePolygonObj:
     def _compute_centroid(self, vertices):
@@ -231,7 +237,7 @@ class ConcavePolygonObj:
         self.obj_radius = max_d
 
         # Decompose into a set of convex polygons
-        poly_l = polygonDecomp(vertices)
+        poly_l = polygonDecomp(vertices) # Not working well
 
         body = simulator.world.CreateDynamicBody(
             position=(x, y),

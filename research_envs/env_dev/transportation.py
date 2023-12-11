@@ -43,25 +43,51 @@ from Box2D import b2Vec2
 #         action = 4
 #     return action
 
+# def key_to_action(key):
+#     action = None
+#     if key == 113: #q
+#         action = np.array([-1/np.sqrt(2), -1/np.sqrt(2), 1.0])
+#     elif key == 119: # w
+#         action = np.array([0.0, -1.0, 1.0])
+#     elif key == 101: # e
+#         action = np.array([1/np.sqrt(2), -1/np.sqrt(2), 1.0])
+#     elif key == 100: # d
+#         action = np.array([1.0, 0.0, 1.0])
+#     elif key == 99: # c
+#         action = np.array([1/np.sqrt(2), 1/np.sqrt(2), 1.0])
+#     elif key == 120: # x
+#         action = np.array([0.0, 1.0, 1.0])
+#     elif key == 122: # z
+#         action = np.array([-1/np.sqrt(2), 1/np.sqrt(2), 1.0])
+#     elif key == 97: # a
+#         action = np.array([-1.0, 0.0, 1.0])
+#     return action
+
+# Key to action for continuous agent with action 
+# spaces.Box(low=0, high=1, shape=(2,), dtype=np.float32)
+# theta = 2*pi * action[0] 
+# direction = np.array([cos(theta), sin(theta)])
+# force = action[1]
 def key_to_action(key):
     action = None
     if key == 113: #q
-        action = np.array([-1/np.sqrt(2), -1/np.sqrt(2)])
+        action = np.array([0.625, 1.0])
     elif key == 119: # w
-        action = np.array([0.0, -1.0])
+        action = np.array([0.75, 1.0])
     elif key == 101: # e
-        action = np.array([1/np.sqrt(2), -1/np.sqrt(2)])
+        action = np.array([0.875, 1.0])
     elif key == 100: # d
-        action = np.array([1.0, 0.0])
-    elif key == 99: # c
-        action = np.array([1/np.sqrt(2), 1/np.sqrt(2)])
-    elif key == 120: # x
         action = np.array([0.0, 1.0])
+    elif key == 99: # c
+        action = np.array([0.125, 1.0])
+    elif key == 120: # x
+        action = np.array([0.25, 1.0])
     elif key == 122: # z
-        action = np.array([-1/np.sqrt(2), 1/np.sqrt(2)])
+        action = np.array([0.375, 1.0])
     elif key == 97: # a
-        action = np.array([-1.0, 0.0])
+        action = np.array([0.5, 1.0])
     return action
+
 
 
 def render():
@@ -76,14 +102,25 @@ if __name__ == "__main__":
         world_config= TransportationWorldConfig(
             obstacle_l = [],
             object_l=[
-                # {'name':'Circle', 'radius':4.0}
+                # {'name':'Circle', 'radius':4.0},
+                # Triangle using PolygonalObj:
+                # {'name': 'Polygon', 'vertices':[[-4, -2], [4, -2], [0, 6]]},
                 # {'name': 'Rectangle', 'height': 10.0, 'width': 5.0}
                 # {'name': 'ConcavePolygon', 'vertices':[[-4, -2], [4, -2], [4, 6], [2, 6], [2, 2], [-4, 2]]}
-                # {'name': 'ConcavePolygon', 'vertices':[
-                #     [4.0, 10.0], [2.0, 6.0], [0.0, 6.0], [1.0, 3.0], [0.0, 2.0], [2.0, 2.0], [4.0, 0.0],
-                #     [6.0, 2.0], [8.0, 2.0], [7.0, 3.0], [8.0, 6.0], [6.0, 6.0], [4.0, 10.0]
-                # ]}
-                {'name': 'MultiPolygons', 'poly_vertices_l':[[[0, 0], [0, 2], [6, 2], [6, 0]], [[0, 2], [0, 4], [4, 4], [4,2]]]}
+                {'name': 'MultiPolygons', 'poly_vertices_l':[[[0, 0], [0, 4], [12, 4], [12, 0]], [[0, 4], [0, 8], [4, 8], [4,4]]]}
+                # {'name': 'MultiPolygons', 'poly_vertices_l':[
+                #     [[0, 0], [0, 3], [6, 3], [3, 0]], 
+                #     [[0, 3], [0, 6], [3, 3]],
+
+                #     [[0, 0], [0, 3], [-6, 3], [-3, 0]], 
+                #     [[0, 3], [0, 6], [-3, 3]],
+
+                #     [[0, 0], [0, -3], [6, -3], [3, 0]], 
+                #     [[0, -3], [0, -6], [3, -3]],
+
+                #     [[0, 0], [0, -3], [-6, -3], [-3, 0]], 
+                #     [[0, -3], [0, -6], [-3, -3]],
+                #     ]}
             ],
             n_rays = 0,
             range_max = 25.0,

@@ -44,13 +44,16 @@ class AgentDirection:
     def GetPositionAsList(self):
         return (self.agent_rigid_body.position[0], self.agent_rigid_body.position[1])
 
-    def PerformAction(self, force):
-        if np.linalg.norm(force) > 0:
-            force = force / np.linalg.norm(force)
-        self.current_obj = self.agent_rigid_body.position + (force * self.force_length)
+    def PerformAction(self, action):
+        # spaces.Box(low=0, high=1, shape=(2,), dtype=np.float32)
+        theta = 2*pi * action[0] 
+        direction = np.array([cos(theta), sin(theta)])
+        force = action[1]
+        
+        self.current_obj = self.agent_rigid_body.position + (force * self.force_length * direction)
         self.current_obj = b2Vec2(self.current_obj)
-        self.state = 1
 
+        self.state = 1
         self.cur_action_steps = 0
 
     def IsPerformingAction(self):
