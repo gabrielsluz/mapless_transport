@@ -43,26 +43,6 @@ from Box2D import b2Vec2
 #         action = 4
 #     return action
 
-# def key_to_action(key):
-#     action = None
-#     if key == 113: #q
-#         action = np.array([-1/np.sqrt(2), -1/np.sqrt(2), 1.0])
-#     elif key == 119: # w
-#         action = np.array([0.0, -1.0, 1.0])
-#     elif key == 101: # e
-#         action = np.array([1/np.sqrt(2), -1/np.sqrt(2), 1.0])
-#     elif key == 100: # d
-#         action = np.array([1.0, 0.0, 1.0])
-#     elif key == 99: # c
-#         action = np.array([1/np.sqrt(2), 1/np.sqrt(2), 1.0])
-#     elif key == 120: # x
-#         action = np.array([0.0, 1.0, 1.0])
-#     elif key == 122: # z
-#         action = np.array([-1/np.sqrt(2), 1/np.sqrt(2), 1.0])
-#     elif key == 97: # a
-#         action = np.array([-1.0, 0.0, 1.0])
-#     return action
-
 # Key to action for continuous agent with action 
 # spaces.Box(low=0, high=1, shape=(2,), dtype=np.float32)
 # theta = 2*pi * action[0] 
@@ -107,7 +87,7 @@ if __name__ == "__main__":
                 # {'name': 'Polygon', 'vertices':[[-4, -2], [4, -2], [0, 6]]},
                 # {'name': 'Rectangle', 'height': 10.0, 'width': 5.0}
                 # {'name': 'ConcavePolygon', 'vertices':[[-4, -2], [4, -2], [4, 6], [2, 6], [2, 2], [-4, 2]]}
-                {'name': 'MultiPolygons', 'poly_vertices_l':[[[0, 0], [0, 4], [12, 4], [12, 0]], [[0, 4], [0, 8], [4, 8], [4,4]]]}
+                # {'name': 'MultiPolygons', 'poly_vertices_l':[[[0, 0], [0, 4], [12, 4], [12, 0]], [[0, 4], [0, 8], [4, 8], [4,4]]]}
                 # {'name': 'MultiPolygons', 'poly_vertices_l':[
                 #     [[0, 0], [0, 3], [6, 3], [3, 0]], 
                 #     [[0, 3], [0, 6], [3, 3]],
@@ -121,6 +101,15 @@ if __name__ == "__main__":
                 #     [[0, 0], [0, -3], [-6, -3], [-3, 0]], 
                 #     [[0, -3], [0, -6], [-3, -3]],
                 #     ]}
+                # Bizzarrer shape
+                {'name': 'MultiPolygons', 'poly_vertices_l':[
+                    [[0, 0], [0, 4], [2, 4], [4, 2], [4, 0]],
+                    [[0, 0], [0, 2], [-6, 2], [-6, 0]],
+                    [[0, 0], [-4, -6], [0, -4]],
+
+                    [[0, 0], [0, -4], [4, -4]],
+                    [[0, 0], [2, -2], [4, 0]]
+                ]}
             ],
             n_rays = 0,
             range_max = 25.0,
