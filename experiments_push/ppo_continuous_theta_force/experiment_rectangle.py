@@ -15,7 +15,8 @@ config = TransportationEnvConfig(
         object_l=[{'name': 'Rectangle', 'height': 10.0, 'width': 5.0}],
         n_rays = 0,
         agent_type = 'continuous',
-        force_length=5.0
+        max_force_length=5.0,
+        min_force_length=0.5
     ),
     max_steps = 500,
     previous_obs_queue_len = 0

@@ -100,7 +100,9 @@ class TransportationWorldConfig:
     range_max: float = 4.0 # maximum range of the sensor [m]
     # Agent
     agent_type: str = 'discrete'
-    force_length: float = 2.0
+    force_length: float = 2.0 # For discrete agent
+    max_force_length: float = 5.0
+    min_force_length: float = 1.0
 
 
 
@@ -170,7 +172,8 @@ class TransportationWorld:
             self.agent = AgentDirection(
                 simulator=self, x=30, y=25,
                 radius=1.0,
-                velocity=2.0, forceLength=config.force_length)
+                velocity=2.0, maxForceLength=config.max_force_length,
+                minForceLength=config.min_force_length)
 
         # Goal
         self.goal = b2Vec2(0,0)

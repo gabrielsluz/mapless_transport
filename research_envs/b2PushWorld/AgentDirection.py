@@ -4,14 +4,15 @@ from math import sin, cos, pi
 
 # Agent that take actions according to a potential field
 class AgentDirection:
-    def __init__(self, simulator = None, x = 0, y = 0, radius = 0.5, velocity = 1.0, forceLength = 2.0):
+    def __init__(self, simulator = None, x = 0, y = 0, radius = 0.5, velocity = 1.0, maxForceLength = 5.0, minForceLength = 1.0):
         # define the current state of the agent
         # 0 - idle (can receive actions)
         # 1 - performing an action (can do nothing besides wait)
         self.state = 0
         self.current_obj = b2Vec2(0,0)
 
-        self.force_length = forceLength
+        self.max_force_length = maxForceLength
+        self.min_force_length = minForceLength
         self.velocity = velocity
 
         # set simulator reference to allow computing global metrics
@@ -48,9 +49,9 @@ class AgentDirection:
         # spaces.Box(low=0, high=1, shape=(2,), dtype=np.float32)
         theta = 2*pi * action[0] 
         direction = np.array([cos(theta), sin(theta)])
-        force = action[1]
+        force = self.min_force_length + (self.max_force_length - self.min_force_length) * action[1]
         
-        self.current_obj = self.agent_rigid_body.position + (force * self.force_length * direction)
+        self.current_obj = self.agent_rigid_body.position + (force * direction)
         self.current_obj = b2Vec2(self.current_obj)
 
         self.state = 1
