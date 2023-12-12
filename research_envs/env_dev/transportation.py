@@ -8,6 +8,7 @@ from research_envs.envs.obstacle_repo import obstacle_l_dict
 from research_envs.cv_buffer.CvDrawBuffer import CvDrawBuffer
 
 import cv2
+import json
 import numpy as np
 from Box2D import b2Vec2
 
@@ -102,14 +103,21 @@ if __name__ == "__main__":
                 #     [[0, -3], [0, -6], [-3, -3]],
                 #     ]}
                 # Bizzarrer shape
-                {'name': 'MultiPolygons', 'poly_vertices_l':[
-                    [[0, 0], [0, 4], [2, 4], [4, 2], [4, 0]],
-                    [[0, 0], [0, 2], [-6, 2], [-6, 0]],
-                    [[0, 0], [-4, -6], [0, -4]],
+                # {'name': 'MultiPolygons', 'poly_vertices_l':[
+                #     [[0, 0], [0, 4], [2, 4], [4, 2], [4, 0]],
+                #     [[0, 0], [0, 2], [-6, 2], [-6, 0]],
+                #     [[0, 0], [-4, -6], [0, -4]],
 
-                    [[0, 0], [0, -4], [4, -4]],
-                    [[0, 0], [2, -2], [4, 0]]
-                ]}
+                #     [[0, 0], [0, -4], [4, -4]],
+                #     [[0, 0], [2, -2], [4, 0]]
+                # ]}
+                # Tentacle
+                {
+                    'name': 'MultiPolygons',
+                    'poly_vertices_l': json.load(
+                        open('research_envs/obj_utils/polygons/tentacle_multi.json', 'r')
+                    )['polygons']
+                }
             ],
             n_rays = 0,
             range_max = 25.0,
