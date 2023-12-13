@@ -11,6 +11,7 @@ from Box2D import b2Vec2
 
 import cv2
 import random
+import json
 import math
 import pandas as pd
 from stable_baselines3 import PPO, SAC
@@ -19,16 +20,34 @@ config = TransportationEnvConfig(
     world_config= TransportationWorldConfig(
         obstacle_l = [],
         object_l=[
-            {'name': 'MultiPolygons', 'poly_vertices_l':[[[0, 0], [0, 4], [12, 4], [12, 0]], [[0, 4], [0, 8], [4, 8], [4,4]]]}
+            # {'name': 'MultiPolygons', 'poly_vertices_l':[[[0, 0], [0, 4], [12, 4], [12, 0]], [[0, 4], [0, 8], [4, 8], [4,4]]]}
             # {'name': 'Rectangle', 'height': 10.0, 'width': 5.0}
+            # {'name': 'Polygon', 'vertices':[[0, 0], [6, 9], [16, 0]]}
+            # {'name': 'MultiPolygons', 'poly_vertices_l':[
+            #         [[0, 0], [0, 4], [2, 4], [4, 2], [4, 0]],
+            #         [[0, 0], [0, 2], [-6, 2], [-6, 0]],
+            #         [[0, 0], [-4, -6], [0, -4]],
+
+            #         [[0, 0], [0, -4], [4, -4]],
+            #         [[0, 0], [2, -2], [4, 0]]
+            #     ]}
+            {
+                'name': 'MultiPolygons',
+                'poly_vertices_l': json.load(
+                    open('../../research_envs/obj_utils/polygons/tentacle_multi.json', 'r')
+                )['polygons']
+            }
         ],
         n_rays = 0,
         agent_type = 'continuous',
-        force_length=1.0
+        max_force_length=5.0,
+        min_force_length=0.25,
+        max_obj_dist=15.0
     ),
     max_steps = 2000,
     previous_obs_queue_len = 0
 )
+
 obs_l_dict = {
     k: obstacle_l_dict[k] 
     for k in [
@@ -37,7 +56,7 @@ obs_l_dict = {
 }
 env = TransportationMixEnv(config, obs_l_dict)
 
-exp_name = 'sac_L_min_force_length_025'
+exp_name = 'sac_circle'
 # model = PPO.load("model_ckp/L_min_force_length_025")
 model = SAC.load("model_ckp/" + exp_name)
 print(model.policy)
@@ -67,6 +86,13 @@ def max_distance_object_to_line(obj, p1, p2):
         for v in vertices:
             max_dist = max(max_dist, distance_point_to_line(v, p1, p2))
     return max_dist
+
+# def max_distance_object_to_line(obj, p1, p2):
+#     # return the maximum distance from circle to the line defined by p1 and p2
+#     # https://en.wikipedia.org/wiki/Distance_from_a_point_to_a_line
+#     # Return the maximum
+#     v = obj.obj_rigid_body.position
+#     return distance_point_to_line(v, p1, p2) + radius
 
 # Reset goal at specific distance from object
 def reset_goal_at_distance_from_object(env, distance):
@@ -104,7 +130,7 @@ last_pos = b2Vec2(env.cur_env.world.obj.obj_rigid_body.position)
 max_corridor_width = 0
 acc_reward = 0
 while True:
-    action, _states = model.predict(obs, deterministic=True)
+    action, _states = model.predict(obs, deterministic=False)
     # action = env.cur_env.world.agent.GetRandomValidAction()
     obs, reward, terminated, truncated, info = env.step(action)
     # render()
@@ -124,7 +150,10 @@ while True:
         result_d['success'].append(info['is_success'])
         result_d['corridor_width'].append(max_corridor_width)
         start_dist = (last_pos - start_pos).length
-        result_d['trajectory_efficiency'].append(cur_length / (start_dist))
+        if start_dist > 0:
+            result_d['trajectory_efficiency'].append(cur_length / (start_dist))
+        else:
+            result_d['trajectory_efficiency'].append(None)
         result_d['init_distance'].append(initial_distance_l[init_d_id])
         ep_cnt += 1
 
@@ -141,7 +170,7 @@ while True:
         # print('Max Corridor Width: ', max_corridor_width)
         # print('Trajectory Length: ', cur_length)
         # print('Trajectory Efficiency: ', cur_length / (start_dist))
-        # print('Success rate: ', sum(success_l) / len(success_l))
+        # print('Success rate: ', sum(result_d['success']) / len(result_d['success']))
         # print()
         acc_reward = 0
         cur_length = 0

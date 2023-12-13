@@ -11,20 +11,11 @@ import os
 import json
 
 
-object_desc = {
-    'name': 'MultiPolygons',
-    'poly_vertices_l': json.load(
-        open('../../research_envs/obj_utils/polygons/tentacle_multi.json', 'r')
-    )['polygons']
-}
-print(object_desc)
 
 config = TransportationEnvConfig(
     world_config= TransportationWorldConfig(
         obstacle_l = [],
-        object_l=[
-            object_desc
-            ],
+        object_l=[{'name': 'Circle', 'radius': 4.0}],
         n_rays = 0,
         agent_type = 'continuous',
         max_force_length=5.0,
@@ -34,7 +25,7 @@ config = TransportationEnvConfig(
     previous_obs_queue_len = 0
 )
 
-exp_name = 'sac_tentacle'
+exp_name = 'sac_circle'
 
 obs_l_dict = {
     k: obstacle_l_dict[k] 
@@ -59,9 +50,9 @@ model.learn(
     tb_log_name=exp_name)
 model.save(os.path.join(ckp_dir, exp_name))
 
-for _ in range(16):
+for _ in range(20):
     model.learn(
-        total_timesteps=50000, log_interval=10, progress_bar=True, reset_num_timesteps=False,
+        total_timesteps=25000, log_interval=10, progress_bar=True, reset_num_timesteps=False,
         tb_log_name=exp_name)
     model.save(os.path.join(ckp_dir, exp_name))
 

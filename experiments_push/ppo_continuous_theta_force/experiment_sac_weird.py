@@ -52,7 +52,7 @@ if not os.path.exists(ckp_dir):
     os.makedirs(ckp_dir) 
 
 model.learn(
-    total_timesteps=2000000, log_interval=10, progress_bar=True, reset_num_timesteps=True,
+    total_timesteps=500000, log_interval=10, progress_bar=True, reset_num_timesteps=True,
     tb_log_name=exp_name)
 model.save(os.path.join(ckp_dir, exp_name))
 

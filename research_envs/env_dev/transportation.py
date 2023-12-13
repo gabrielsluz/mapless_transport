@@ -3,7 +3,7 @@ import sys
 sys.path.append('.')
 
 from research_envs.b2PushWorld.TransportationWorld import TransportationWorldConfig
-from research_envs.envs.transportation_env import TransportationEnvConfig, TransportationEnv, TransportationMixEnv
+from research_envs.envs.transportation_corridor_reward_env import TransportationEnvConfig, TransportationEnv, TransportationMixEnv
 from research_envs.envs.obstacle_repo import obstacle_l_dict
 from research_envs.cv_buffer.CvDrawBuffer import CvDrawBuffer
 
@@ -86,6 +86,7 @@ if __name__ == "__main__":
                 # {'name':'Circle', 'radius':4.0},
                 # Triangle using PolygonalObj:
                 # {'name': 'Polygon', 'vertices':[[-4, -2], [4, -2], [0, 6]]},
+                {'name': 'Polygon', 'vertices':[[0, 0], [6, 9], [16, 0]]},
                 # {'name': 'Rectangle', 'height': 10.0, 'width': 5.0}
                 # {'name': 'ConcavePolygon', 'vertices':[[-4, -2], [4, -2], [4, 6], [2, 6], [2, 2], [-4, 2]]}
                 # {'name': 'MultiPolygons', 'poly_vertices_l':[[[0, 0], [0, 4], [12, 4], [12, 0]], [[0, 4], [0, 8], [4, 8], [4,4]]]}
@@ -112,12 +113,13 @@ if __name__ == "__main__":
                 #     [[0, 0], [2, -2], [4, 0]]
                 # ]}
                 # Tentacle
-                {
-                    'name': 'MultiPolygons',
-                    'poly_vertices_l': json.load(
-                        open('research_envs/obj_utils/polygons/tentacle_multi.json', 'r')
-                    )['polygons']
-                }
+                # {
+                #     'name': 'MultiPolygons',
+                #     'poly_vertices_l': json.load(
+                #         open('research_envs/obj_utils/polygons/tentacle_multi.json', 'r')
+                #     )['polygons']
+                # }
+
             ],
             n_rays = 0,
             range_max = 25.0,
