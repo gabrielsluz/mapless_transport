@@ -14,6 +14,7 @@ class TransportationEnvConfig:
     world_config: TransportationWorldConfig = TransportationWorldConfig()
     max_steps: int = 1000
     previous_obs_queue_len: int = 0
+    reward_scale: float = 1.0
 
 class TransportationEnv(gym.Env):
     metadata = {'render.modes': ['human']}
@@ -57,6 +58,8 @@ class TransportationEnv(gym.Env):
 
         self.max_obj_dist = self.world.max_obj_dist
         self.max_goal_dist = max(self.world.width, self.world.height)
+
+        self.reward_scale = config.reward_scale
 
         self.max_steps = config.max_steps
         self.step_count = 0
@@ -124,12 +127,34 @@ class TransportationEnv(gym.Env):
         obj_dist = self.world.agent_to_object_vector().length
         return self.world.did_agent_collide() or self.world.did_object_collide() or obj_dist > self.max_obj_dist
 
+    # def _calc_reward(self):
+    #     # Reward based on the progress of the agent towards the goal	
+    #     # Limits the maximum reward to [-1.0, 1.0] (except for success or death)
+    #     progress_reward = 0.0
+    #     success_reward = 100.0	
+    #     death_penalty = -100.0	
+    #     time_penalty = -0.01	
+
+    #     # Success
+    #     if self._check_success():
+    #         return success_reward
+    #     # Death
+    #     if self._check_death():
+    #         return death_penalty
+    #     # Progress
+    #     cur_dist = self.world.object_to_goal_vector().length
+    #     # Tries to scale between -1 and +1, but also clips it	
+    #     max_gain = 2.0 # Heuristic, should be adapted to the environment	
+    #     progress_reward = (self.last_dist - cur_dist) / max_gain  	
+    #     progress_reward = max(min(progress_reward, 1.0), -1.0)	
+    #     return progress_reward + time_penalty
+
     def _calc_reward(self):
         # Reward based on the progress of the agent towards the goal	
-        # Limits the maximum reward to [-1.0, 1.0] (except for success or death)
+        # Limits the maximum reward to [-1.0, 2.0] on average
         progress_reward = 0.0
-        success_reward = 100.0	
-        death_penalty = -100.0	
+        success_reward = 0.5
+        death_penalty = -1.0	
         time_penalty = -0.01	
 
         # Success
@@ -138,12 +163,12 @@ class TransportationEnv(gym.Env):
         # Death
         if self._check_death():
             return death_penalty
-        # Progress
+        # Progress 
+        # On average the final progress reward is 1.0 when successful
         cur_dist = self.world.object_to_goal_vector().length
-        # Tries to scale between -1 and +1, but also clips it	
-        max_gain = 2.0 # Heuristic, should be adapted to the environment	
-        progress_reward = (self.last_dist - cur_dist) / max_gain  	
-        progress_reward = max(min(progress_reward, 1.0), -1.0)	
+        progress_reward = (self.last_dist - cur_dist)
+        progress_reward = progress_reward / (self.max_goal_dist/2)
+
         return progress_reward + time_penalty
 
     # def _calc_reward(self):
@@ -165,7 +190,7 @@ class TransportationEnv(gym.Env):
         self.step_count += 1
         
         info = {'is_success': False, "TimeLimit.truncated": False}
-        reward = self._calc_reward()
+        reward = self.reward_scale * self._calc_reward()
         terminated = self._check_success() or self._check_death()
         if self._check_success(): 
             info['is_success'] = True

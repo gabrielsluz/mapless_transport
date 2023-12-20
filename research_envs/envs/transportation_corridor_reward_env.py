@@ -50,7 +50,7 @@ class TransportationEnv(gym.Env):
 
 
         self.observation_shape = (
-            n_rays + 5 + self.prev_act_len,
+            n_rays + 7 + self.prev_act_len,
         )
         self.observation_space = spaces.Box(
             low=-np.inf, high=np.inf, shape=self.observation_shape, dtype=np.float32)
@@ -58,7 +58,15 @@ class TransportationEnv(gym.Env):
         self.max_obj_dist = self.world.max_obj_dist
         self.max_goal_dist = max(self.world.width, self.world.height)
 
+        # Corridor variables
         self.start_obj_pos = b2Vec2(self.world.obj.obj_rigid_body.position)
+        self.max_corr_width = 60.0
+        # Corridor line: [a, b] => ax + b = y
+        # From points: self.start_obj_pos e self.world.goal
+        self.corr_line = [
+            (self.world.goal.y - self.start_obj_pos.y) / (self.world.goal.x - self.start_obj_pos.x),
+            self.start_obj_pos.y - self.start_obj_pos.x * (self.world.goal.y - self.start_obj_pos.y) / (self.world.goal.x - self.start_obj_pos.x)
+        ]
 
         self.max_steps = config.max_steps
         self.step_count = 0
@@ -95,8 +103,25 @@ class TransportationEnv(gym.Env):
         obj_obs = np.array([
             angle/np.pi, min(agent_to_obj.length/self.max_obj_dist, 1.0), obj_angle
             ])
+        
+        # Corridor observation
+        # Find the closest point to the object center in the corridor line
+        # ax + by +c = 0
+        a = self.corr_line[0]
+        b = -1.0
+        c = self.corr_line[1]
+        p0 = self.world.obj.obj_rigid_body.position
+        p_x = (b*(b*p0.x - a*p0.y) - a*c) / (a*a + b*b)
+        p_y = (a*(-b*p0.x + a*p0.y) - b*c) / (a*a + b*b)
 
-        return np.concatenate((laser_readings, goal_obs, obj_obs), dtype=np.float32)
+        obj_to_p = b2Vec2(p_x, p_y) - self.world.obj.obj_rigid_body.position
+        # Calc angle between agent_to_obj and x-axis
+        angle = np.arctan2(obj_to_p[1], obj_to_p[0])
+        corr_obs = np.array([
+            angle/np.pi, min(obj_to_p.length/self.max_corr_width, 1.0)
+            ])
+
+        return np.concatenate((laser_readings, goal_obs, obj_obs, corr_obs), dtype=np.float32)
     
     def _gen_observation(self):
         cur_obs = self._gen_current_observation()
@@ -154,15 +179,13 @@ class TransportationEnv(gym.Env):
         progress_reward = max(min(progress_reward, 1.0), -1.0)	
 
         # Corridor Penalty
-        max_corr_width = 30.0
-        corr_multiplier = 0.1 # Corr penalty in [-0.1, 0]
+        corr_multiplier = 0.2 # Corr penalty in [-0.2, 0]
         dist_obj_corr = self.distance_point_to_line(
             self.world.obj.obj_rigid_body.position,
             self.start_obj_pos,
             self.world.goal
             )
-        corr_penalty = -corr_multiplier * min(1.0, dist_obj_corr / max_corr_width)
-        print('Corr penalty:', corr_penalty)
+        corr_penalty = -corr_multiplier * min(1.0, dist_obj_corr / self.max_corr_width)
 
         return progress_reward + time_penalty + corr_penalty
 
@@ -204,6 +227,10 @@ class TransportationEnv(gym.Env):
         # self.prev_obs_queue.clear()
         self.last_dist = self.world.object_to_goal_vector().length
         self.start_obj_pos = b2Vec2(self.world.obj.obj_rigid_body.position)
+        self.corr_line = [
+            (self.world.goal.y - self.start_obj_pos.y) / (self.world.goal.x - self.start_obj_pos.x),
+            self.start_obj_pos.y - self.start_obj_pos.x * (self.world.goal.y - self.start_obj_pos.y) / (self.world.goal.x - self.start_obj_pos.x)
+        ]
 
         return self._gen_observation(), {}
 

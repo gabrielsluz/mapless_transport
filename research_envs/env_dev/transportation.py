@@ -3,7 +3,7 @@ import sys
 sys.path.append('.')
 
 from research_envs.b2PushWorld.TransportationWorld import TransportationWorldConfig
-from research_envs.envs.transportation_corridor_reward_env import TransportationEnvConfig, TransportationEnv, TransportationMixEnv
+from research_envs.envs.transportation_env import TransportationEnvConfig, TransportationEnv, TransportationMixEnv
 from research_envs.envs.obstacle_repo import obstacle_l_dict
 from research_envs.cv_buffer.CvDrawBuffer import CvDrawBuffer
 
@@ -160,6 +160,8 @@ if __name__ == "__main__":
     # )
     # env = TransportationEnv(config)
     print('Env created.')
+
+    acc_reward = 0.0
     
     render()
     while True:
@@ -171,6 +173,8 @@ if __name__ == "__main__":
         if not action is None:
             observation, reward, terminated, truncated, info = env.step(action)
             render()
+
+            acc_reward += reward
             # print('Pos:', env.cur_env.world.agent.agent_rigid_body.position)
             print(observation)
             print(observation.shape)
@@ -187,4 +191,7 @@ if __name__ == "__main__":
                 print('Agent reached goal.')
 
             if truncated or terminated:
+                print()
+                print('Accumulated reward: ', acc_reward)
+                acc_reward = 0.0
                 env.reset()

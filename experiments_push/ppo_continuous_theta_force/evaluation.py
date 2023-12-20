@@ -56,9 +56,9 @@ obs_l_dict = {
 }
 env = TransportationMixEnv(config, obs_l_dict)
 
-exp_name = 'sac_circle'
+exp_name = 'sac_tentacle_4'
 # model = PPO.load("model_ckp/L_min_force_length_025")
-model = SAC.load("model_ckp/" + exp_name)
+model = SAC.load("model_ckp/tentacle_no_corridor_reward/" + exp_name)
 print(model.policy)
 
 n_episodes = 500

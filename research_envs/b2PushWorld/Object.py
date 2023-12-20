@@ -1,4 +1,4 @@
-from Box2D import b2CircleShape, b2PolygonShape, b2FixtureDef, b2Vec2, b2WeldJointDef, b2WeldJoint
+from Box2D import b2CircleShape, b2PolygonShape, b2Transform, b2FixtureDef, b2Vec2, b2WeldJointDef, b2WeldJoint
 import cv2
 import math
 import numpy as np
@@ -53,6 +53,11 @@ class CircleObj(Object):
 
     def DrawInPos(self, screen_pos, pixels_per_meter, image, color, thickness):
         cv2.circle(image, screen_pos, int(self.obj_radius*pixels_per_meter), color, thickness)
+    
+    def DrawInPose(self, world_pos, angle, pixels_per_meter, image, color, thickness):
+        position = [world_pos.x, world_pos.y]
+        screen_pos = self.worldToScreen(position, pixels_per_meter)
+        cv2.circle(image, screen_pos, int(self.obj_radius*pixels_per_meter), color, thickness)
 
 
 class RectangleObj(Object):
@@ -75,6 +80,14 @@ class RectangleObj(Object):
         vertices = [self.worldToScreen(v, pixels_per_meter) for v in vertices]
         # Translate
         vertices = [(v[0]+screen_pos[0], v[1]+screen_pos[1]) for v in vertices]
+        cv2.fillPoly(image, [np.array(vertices)], color)
+
+    def DrawInPose(self, world_pos, angle, pixels_per_meter, image, color, thickness):
+        transform_matrix = b2Transform()
+        transform_matrix.SetIdentity()
+        transform_matrix.Set(world_pos, angle)
+        vertices = [(transform_matrix * v) for v in self.obj_rigid_body.fixtures[0].shape.vertices]
+        vertices = [self.worldToScreen(v, pixels_per_meter) for v in vertices]
         cv2.fillPoly(image, [np.array(vertices)], color)
 
 
@@ -107,6 +120,14 @@ class PolygonalObj(Object):
         vertices = [self.worldToScreen(v, pixels_per_meter) for v in vertices]
         # Translate
         vertices = [(v[0]+screen_pos[0], v[1]+screen_pos[1]) for v in vertices]
+        cv2.fillPoly(image, [np.array(vertices)], color)
+
+    def DrawInPose(self, world_pos, angle, pixels_per_meter, image, color, thickness):
+        transform_matrix = b2Transform()
+        transform_matrix.SetIdentity()
+        transform_matrix.Set(world_pos, angle)
+        vertices = [(transform_matrix * v) for v in self.obj_rigid_body.fixtures[0].shape.vertices]
+        vertices = [self.worldToScreen(v, pixels_per_meter) for v in vertices]
         cv2.fillPoly(image, [np.array(vertices)], color)
 
 
@@ -193,6 +214,16 @@ class MultiPolygonsObj:
             vertices = [self.worldToScreen(v, pixels_per_meter) for v in vertices]
             # Translate
             vertices = [(v[0]+screen_pos[0], v[1]+screen_pos[1]) for v in vertices]
+            cv2.fillPoly(image, [np.array(vertices)], color)
+
+    def DrawInPose(self, world_pos, angle, pixels_per_meter, image, color, thickness):
+        transform_matrix = b2Transform()
+        transform_matrix.SetIdentity()
+        transform_matrix.Set(world_pos, angle)
+        body = self.obj_rigid_body
+        for f_i in range(len(body.fixtures)):
+            vertices = [(transform_matrix * v) for v in body.fixtures[f_i].shape.vertices]
+            vertices = [self.worldToScreen(v, pixels_per_meter) for v in vertices]
             cv2.fillPoly(image, [np.array(vertices)], color)
 
 # Dev
