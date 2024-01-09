@@ -417,9 +417,20 @@ class TransportationWorld:
     def drawToBufferObservation(self):
         # clear previous buffer
         screen = np.ones(shape=(self.screen_height, self.screen_width, 3), dtype=np.float32)
+        # Draw the object
+        if self.object_collided == 0:
+            self.obj.Draw(self.pixels_per_meter, screen, (0, 0, 1, 0), -1)
+            self.drawArrow(screen, self.obj.GetPositionAsList() , self.obj.obj_rigid_body.angle, 10, (0, 0, 1, 0))
+        else:
+            self.obj.Draw(self.pixels_per_meter, screen, (1, 0, 1, 0), -1)
+            self.drawArrow(screen, self.obj.GetPositionAsList() , self.obj.obj_rigid_body.angle, 10, (1, 0, 1, 0))
+        # Draw max object dist
+        screen_pos = self.worldToScreen(self.obj.GetPositionAsList())
+        cv2.circle(screen, screen_pos, int(self.max_obj_dist*self.pixels_per_meter), (0, 0.5, 0.5, 0), thickness=4, lineType=4)
         # Draw goal
-        screen_pos = self.worldToScreen(self.goal['pos'])
-        cv2.circle(screen, screen_pos, int(self.goal_tolerance['pos']*self.pixels_per_meter), (0, 1, 0, 0), -1)
+        self.obj.DrawInPose(
+            self.goal['pos'], self.goal['angle'], self.pixels_per_meter, screen, (0, 1, 0, 0), -1)
+        self.drawArrow(screen, self.goal['pos'], self.goal['angle'], 10, (0, 1, 0, 0))
         # Lasers
         _, _, laser_point_l = self.get_laser_readings()
         screen_pos = self.worldToScreen(self.agent.GetPositionAsList())

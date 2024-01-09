@@ -22,8 +22,8 @@ config = TransportationEnvConfig(
         obstacle_l = [],
         object_l=[
             # {'name': 'MultiPolygons', 'poly_vertices_l':[[[0, 0], [0, 4], [12, 4], [12, 0]], [[0, 4], [0, 8], [4, 8], [4,4]]]}
-            # {'name': 'Rectangle', 'height': 10.0, 'width': 5.0}
-            {'name': 'Polygon', 'vertices':[[0, 0], [6, 9], [16, 0]]}
+            {'name': 'Rectangle', 'height': 10.0, 'width': 5.0}
+            # {'name': 'Polygon', 'vertices':[[0, 0], [6, 9], [16, 0]]}
             # {'name': 'MultiPolygons', 'poly_vertices_l':[
             #         [[0, 0], [0, 4], [2, 4], [4, 2], [4, 0]],
             #         [[0, 0], [0, 2], [-6, 2], [-6, 0]],
@@ -39,12 +39,13 @@ config = TransportationEnvConfig(
             #     )['polygons']
             # }
         ],
-        n_rays = 0,
+        n_rays = 24,
+        range_max=15.0,
         agent_type = 'continuous',
         max_force_length=5.0,
-        min_force_length=0.25,
+        min_force_length=0.1,
         max_obj_dist=15.0,
-        goal_tolerance={'pos':2, 'angle':np.pi/36}
+        goal_tolerance={'pos':2, 'angle':np.pi/18}
     ),
     max_steps = 2000,
     previous_obs_queue_len = 0
@@ -53,19 +54,19 @@ config = TransportationEnvConfig(
 obs_l_dict = {
     k: obstacle_l_dict[k] 
     for k in [
-        'empty'
+        '4_circles_wide'#'empty'
     ]
 }
 env = TransportationMixEnv(config, obs_l_dict)
 
-exp_name = 'progress_sac_triangle_tolerance_pi36_pos_tol_2_reward_scale_20'
+exp_name = 'progress_sac_rectangle_tolerance_pi18_pos_tol_2_reward_scale_20_map_4_circles_wide'
 # model = PPO.load("model_ckp/L_min_force_length_025")
 model = SAC.load("model_ckp/" + exp_name)
 print(model.policy)
 
 n_episodes = 500
 
-initial_distance_l = [25]#[5.0, 50.0, 100.0, 200.0, 300.0, 400.0, 500.0]
+initial_distance_l = [10]#[5.0, 50.0, 100.0, 200.0, 300.0, 400.0, 500.0]
 init_d_id = 0
 
 # CODE FOR EVALUATION
@@ -97,20 +98,23 @@ def max_distance_object_to_line(obj, p1, p2):
 #     return distance_point_to_line(v, p1, p2) + radius
 
 # Reset goal at specific distance from object
+# def reset_goal_at_distance_from_object(env, distance):
+#     env.reset() # MixEnv.reset()
+#     env = env.cur_env
+
+#     env.world.reset()
+#     rand_rad = random.uniform(0, 2*math.pi)
+#     env.world.goal['pos'].x = env.world.obj.obj_rigid_body.position.x + distance * math.cos(rand_rad)
+#     env.world.goal['pos'].y = env.world.obj.obj_rigid_body.position.y + distance * math.sin(rand_rad)
+
+#     env.step_count = 0
+
+#     env.prev_action_queue.clear()
+#     env.last_dist = env.world.object_to_goal_vector().length
+#     return env._gen_observation(), {}
+
 def reset_goal_at_distance_from_object(env, distance):
-    env.reset() # MixEnv.reset()
-    env = env.cur_env
-
-    env.world.reset()
-    rand_rad = random.uniform(0, 2*math.pi)
-    env.world.goal['pos'].x = env.world.obj.obj_rigid_body.position.x + distance * math.cos(rand_rad)
-    env.world.goal['pos'].y = env.world.obj.obj_rigid_body.position.y + distance * math.sin(rand_rad)
-
-    env.step_count = 0
-
-    env.prev_action_queue.clear()
-    env.last_dist = env.world.object_to_goal_vector().length
-    return env._gen_observation(), {}
+    return env.reset() # MixEnv.reset()
 
 scene_buffer = CvDrawBuffer(window_name="Simulation", resolution=(1024,1024))
 def render():
@@ -123,7 +127,7 @@ cur_ep = 0
 ep_cnt = 0
 result_d = {'id': [], 'success': [], 'corridor_width': [], 'trajectory_efficiency': [], 'init_distance': []}
 
-render()
+# render()
 obs, info = reset_goal_at_distance_from_object(env, initial_distance_l[init_d_id])
 
 cur_length = 0
@@ -135,7 +139,7 @@ while True:
     action, _states = model.predict(obs, deterministic=False)
     # action = env.cur_env.world.agent.GetRandomValidAction()
     obs, reward, terminated, truncated, info = env.step(action)
-    render()
+    # render()
 
     acc_reward += reward
     cur_pos = env.cur_env.world.obj.obj_rigid_body.position

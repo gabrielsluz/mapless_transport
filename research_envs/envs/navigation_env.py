@@ -13,6 +13,7 @@ class NavigationEnvConfig:
     world_config: NavigationWorldConfig = NavigationWorldConfig()
     max_steps: int = 1000
     previous_obs_queue_len: int = 0
+    reward_scale: float = 1.0
 
 class NavigationEnv(gym.Env):
     metadata = {'render.modes': ['human']}
@@ -26,7 +27,7 @@ class NavigationEnv(gym.Env):
             self.action_space = spaces.Discrete(self.world.agent.directions)
         elif config.world_config.agent_type == 'continuous':
             self.action_space = spaces.Box(
-            low=-1.0, high=1.0, shape=(2,), dtype=np.float32)
+                low=0, high=1, shape=(2,), dtype=np.float32)
         else:
             print('Agent type not implemented in env: ', config.world_config.agent_type)
             return
@@ -53,11 +54,15 @@ class NavigationEnv(gym.Env):
             )
         elif self.agent_type == 'continuous':
             self.observation_shape = (
-                n_rays+2 + 2*self.prev_act_len,
+                n_rays + 2 + 2*self.prev_act_len,
             )
 
         self.observation_space = spaces.Box(
             low=-np.inf, high=np.inf, shape=self.observation_shape, dtype=np.float32)
+        
+        self.max_goal_dist = max(self.world.width, self.world.height)
+
+        self.reward_scale = config.reward_scale
 
         self.max_steps = config.max_steps
         self.step_count = 0
@@ -71,8 +76,9 @@ class NavigationEnv(gym.Env):
         # Calc angle between agent_to_goal and x-axis
         angle = np.arctan2(agent_to_goal[1], agent_to_goal[0])
         goal_obs = np.array([
-            angle/np.pi, min(agent_to_goal.length/50.0, 1.0)
+            angle/np.pi, min(agent_to_goal.length/self.max_goal_dist, 1.0),
             ])
+
         return np.concatenate((laser_readings, goal_obs), dtype=np.float32)
     
     def _gen_observation(self):
@@ -95,8 +101,8 @@ class NavigationEnv(gym.Env):
             prev_act = np.zeros(2*self.prev_act_len)
 
             for i, a in enumerate(reversed(self.prev_action_queue)):
-                prev_act[2*i] = a.x
-                prev_act[2*i+1] = a.y
+                prev_act[2*i] = a[0]
+                prev_act[2*i+1] = a[1]
 
         obs = np.concatenate([cur_obs, prev_act], dtype=np.float32)
         # obs = np.concatenate([cur_obs, prev_obs, prev_act])
@@ -105,9 +111,9 @@ class NavigationEnv(gym.Env):
 
     def _calc_reward(self):
         if self.world.did_agent_collide():
-            return -100.0
+            return -1.0
         elif self.world.did_agent_reach_goal():
-            return 100.0
+            return 1.0
         else:
             # # Progress reward => getting closer to goal
             # self.cur_dist = self.world.agent_to_goal_vector().length
@@ -117,9 +123,6 @@ class NavigationEnv(gym.Env):
 
     def step(self, action):
         # (observation, reward, terminated, truncated, info)
-        if self.agent_type == 'continuous':
-            action = b2Vec2(float(action[0]), float(action[1]))
-
         self.prev_action_queue.append(action)
         self.last_dist = self.world.agent_to_goal_vector().length
 
@@ -128,7 +131,7 @@ class NavigationEnv(gym.Env):
         self.step_count += 1
         
         info = {'is_success': False, "TimeLimit.truncated": False}
-        reward = self._calc_reward()
+        reward = self.reward_scale * self._calc_reward()
         terminated = self.world.did_agent_collide() or self.world.did_agent_reach_goal()
         if self.world.did_agent_reach_goal(): 
             info['is_success'] = True

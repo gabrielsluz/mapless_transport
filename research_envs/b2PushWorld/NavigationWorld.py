@@ -97,7 +97,9 @@ class NavigationWorldConfig:
     range_max: float = 4.0 # maximum range of the sensor [m]
     # Agent
     agent_type: str = 'discrete'
-    agent_force_length: float = 2.0
+    agent_force_length: float = 2.0 # For the Discrete agent
+    max_force_length: float = 5.0
+    min_force_length: float = 1.0
     agent_radius: float = 1.0
 
 
@@ -147,7 +149,8 @@ class NavigationWorld:
             self.agent = AgentDirection(
                 simulator=self, x=30, y=25,
                 radius=config.agent_radius,
-                velocity=2.0, forceLength=config.agent_force_length)
+                velocity=2.0, maxForceLength=config.max_force_length,
+                minForceLength=config.min_force_length)
 
         # Goal
         self.goal = b2Vec2(0,0)

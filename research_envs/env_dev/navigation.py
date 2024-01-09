@@ -8,6 +8,7 @@ from research_envs.envs.obstacle_repo import obstacle_l_dict
 from research_envs.cv_buffer.CvDrawBuffer import CvDrawBuffer
 
 import cv2
+import numpy as np
 
 from Box2D import b2Vec2
 
@@ -54,23 +55,23 @@ from Box2D import b2Vec2
 #     return action
 
 def key_to_action(key):
-    action = -1
+    action = None
     if key == 113: #q
-        action = b2Vec2(-0.5, -0.5)
+        action = np.array([0.625, 1.0])
     elif key == 119: # w
-        action = b2Vec2(0, -1)
+        action = np.array([0.75, 1.0])
     elif key == 101: # e
-        action = b2Vec2(0.5, -0.5)
+        action = np.array([0.875, 1.0])
     elif key == 100: # d
-        action = b2Vec2(1, 0)
+        action = np.array([0.0, 1.0])
     elif key == 99: # c
-        action = b2Vec2(0.5, 0.5)
+        action = np.array([0.125, 1.0])
     elif key == 120: # x
-        action = b2Vec2(0, 1)
+        action = np.array([0.25, 1.0])
     elif key == 122: # z
-        action = b2Vec2(-0.5, 0.5)
+        action = np.array([0.375, 1.0])
     elif key == 97: # a
-        action = b2Vec2(-1, 0)
+        action = np.array([0.5, 1.0])
     return action
 
 
@@ -86,7 +87,8 @@ if __name__ == "__main__":
             obstacle_l = [],
             n_rays = 8,
             range_max = 25.0,
-            agent_force_length = 1.0,
+            max_force_length=1.0,
+            min_force_length=0.0,
             agent_type = 'continuous'
         ),
         max_steps=200,
@@ -133,7 +135,7 @@ if __name__ == "__main__":
         key = 0xFF & cv2.waitKey(int(dt * 1000.0)) # Sets default key = 255
         if key == 27: break # Esc key
         action = key_to_action(key)
-        if type(action) == b2Vec2 or action != -1:
+        if not action is None:
             observation, reward, terminated, truncated, info = env.step(action)
             render()
             # print('Pos:', env.cur_env.world.agent.agent_rigid_body.position)

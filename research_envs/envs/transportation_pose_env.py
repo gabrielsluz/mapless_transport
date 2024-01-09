@@ -211,7 +211,7 @@ class TransportationEnv(gym.Env):
         return self._gen_observation(), {}
 
     def render(self, mode='human'):
-        return self.world.drawToBufferWithLaser()#self.world.drawToBufferObservation()
+        return self.world.drawToBufferObservation()# self.world.drawToBufferWithLaser()#self.world.drawToBufferObservation()
 
     def close(self):
         pass

@@ -121,14 +121,16 @@ if __name__ == "__main__":
                 # }
 
             ],
-            n_rays = 0,
-            range_max = 25.0,
+            n_rays = 24,
+            range_max = 15.0,
             agent_type = 'continuous',
             max_force_length=1.0,
-            min_force_length=0.0
+            min_force_length=0.0,
+            goal_tolerance={'pos':2, 'angle':np.pi/18}
         ),
         max_steps=500,
-        previous_obs_queue_len=0
+        previous_obs_queue_len=0,
+        reward_scale=20.0
     )
     obs_l_dict = {
         k: obstacle_l_dict[k] 
@@ -161,6 +163,7 @@ if __name__ == "__main__":
     # env = TransportationEnv(config)
     print('Env created.')
     
+    acc_reward = 0.0
     render()
     while True:
         # Input handling - requires a cv2 window running => env.render()
@@ -170,6 +173,7 @@ if __name__ == "__main__":
         action = key_to_action(key)
         if not action is None:
             observation, reward, terminated, truncated, info = env.step(action)
+            acc_reward += reward
             render()
             # print('Pos:', env.cur_env.world.agent.agent_rigid_body.position)
             print(observation)
@@ -187,4 +191,6 @@ if __name__ == "__main__":
                 print('Agent reached goal.')
 
             if truncated or terminated:
+                print("Accumulated reward: ", acc_reward)
+                acc_reward = 0.0
                 env.reset()
