@@ -48,6 +48,7 @@ class TransportationEnv(gym.Env):
             self.prev_act_len = config.previous_obs_queue_len
         elif config.world_config.agent_type == 'continuous':
             self.prev_act_len = config.previous_obs_queue_len*2
+        self.agent_type = config.world_config.agent_type
 
 
         self.observation_shape = (
@@ -101,12 +102,18 @@ class TransportationEnv(gym.Env):
         #     aux += list(obs)
         # prev_obs[:len(aux)] = aux
 
-        prev_act = np.zeros(self.prev_act_len)
-        aux = [
-            (a+1)/(self.action_space.n+1) # Avoid a = 0
-            for a in reversed(self.prev_action_queue)
-        ]
-        prev_act[:len(aux)] = aux
+        if self.agent_type == 'discrete':
+            prev_act = np.zeros(self.prev_act_len)
+            aux = [
+                (a+1)/(self.action_space.n+1) # Avoid a = 0
+                for a in reversed(self.prev_action_queue)
+            ]
+            prev_act[:len(aux)] = aux
+        elif self.agent_type == 'continuous':
+            prev_act = np.zeros(self.prev_act_len)
+            for i, a in enumerate(reversed(self.prev_action_queue)):
+                prev_act[2*i] = a[0]
+                prev_act[2*i+1] = a[1]
 
         obs = np.concatenate([cur_obs, prev_act], dtype=np.float32)
         # obs = np.concatenate([cur_obs, prev_obs, prev_act])
@@ -211,7 +218,7 @@ class TransportationEnv(gym.Env):
         return self._gen_observation(), {}
 
     def render(self, mode='human'):
-        return self.world.drawToBufferObservation()# self.world.drawToBufferWithLaser()#self.world.drawToBufferObservation()
+        return self.world.drawToBufferWithLaser()#self.world.drawToBufferObservation()
 
     def close(self):
         pass

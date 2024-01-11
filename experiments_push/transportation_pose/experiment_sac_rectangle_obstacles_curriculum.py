@@ -33,12 +33,12 @@ config = TransportationEnvConfig(
     reward_scale=10.0
 )
 
-exp_name = 'progress_sac_rectangle_tolerance_pi18_pos_tol_2_reward_scale_10_map_large_obstacle_middle'
+exp_name = 'progress_sac_rectangle_curriculum'
 
 obs_l_dict = {
     k: obstacle_l_dict[k] 
     for k in [
-        '1_circle', '1_rectangle', '1_triangle'
+        'empty'
     ]
 }
 env = TransportationMixEnv(config, obs_l_dict)
@@ -53,18 +53,34 @@ ckp_dir = 'model_ckp'
 if not os.path.exists(ckp_dir): 
     os.makedirs(ckp_dir) 
 
+# Empty map for 700k timesteps
+
 model.learn(
     total_timesteps=100000, log_interval=10, progress_bar=True, reset_num_timesteps=True,
     tb_log_name=exp_name)
 model.save(os.path.join(ckp_dir, exp_name))
+
+for _ in range(12):
+    model.learn(
+        total_timesteps=50000, log_interval=10, progress_bar=True, reset_num_timesteps=False,
+        tb_log_name=exp_name)
+    model.save(os.path.join(ckp_dir, exp_name))
+
+# Middle object for ever
+obs_l_dict = {
+    k: obstacle_l_dict[k] 
+    for k in [
+        'empty', '1_circle', '1_rectangle', '1_triangle'
+    ]
+}
+env = TransportationMixEnv(config, obs_l_dict)
+model.set_env(env, force_reset=True)
 
 for _ in range(50):
     model.learn(
         total_timesteps=50000, log_interval=10, progress_bar=True, reset_num_timesteps=False,
         tb_log_name=exp_name)
     model.save(os.path.join(ckp_dir, exp_name))
-
-
 
 # for m_n in [
 #     'empty', 'frame', 'horizontal_corridor', 'vertical_corridor','4_circles_wide',
@@ -73,12 +89,7 @@ for _ in range(50):
 #     run_experiment(m_n)
 
 """
-Increase the difficulty.
-Maps:
+Curriculum test:
 - Empty
-- Large obstacle in the center
-- Corridors
-- 4 circles wide
-
-
+- Circle + rectangle + triangle
 """

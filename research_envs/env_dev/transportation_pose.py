@@ -122,20 +122,20 @@ if __name__ == "__main__":
 
             ],
             n_rays = 24,
-            range_max = 15.0,
+            range_max = 25.0,
             agent_type = 'continuous',
             max_force_length=1.0,
             min_force_length=0.0,
             goal_tolerance={'pos':2, 'angle':np.pi/18}
         ),
         max_steps=500,
-        previous_obs_queue_len=0,
+        previous_obs_queue_len=2,
         reward_scale=20.0
     )
     obs_l_dict = {
         k: obstacle_l_dict[k] 
         for k in [
-            '4_circles_wide'
+            '1_circle', '1_rectangle', '1_triangle'
         #     'empty', 'frame', 'horizontal_corridor', 'vertical_corridor','4_circles_wide',
         # '1_circle', '1_rectangle', '1_triangle'
             # 'circle_line', 'small_4_circles',

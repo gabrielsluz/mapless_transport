@@ -33,52 +33,31 @@ config = TransportationEnvConfig(
     reward_scale=10.0
 )
 
-exp_name = 'progress_sac_rectangle_tolerance_pi18_pos_tol_2_reward_scale_10_map_large_obstacle_middle'
+exp_name = 'progress_sac_rectangle_tolerance_pi18_pos_tol_2_reward_scale_10_map_empty_load_then_middle'
 
 obs_l_dict = {
     k: obstacle_l_dict[k] 
     for k in [
-        '1_circle', '1_rectangle', '1_triangle'
+        'empty', '1_circle', '1_rectangle', '1_triangle'
     ]
 }
 env = TransportationMixEnv(config, obs_l_dict)
 
-model = SAC(
-    "MlpPolicy", env,
-    verbose=1, tensorboard_log="./tensorboard_dir/")
+# model = SAC(
+#     "MlpPolicy", env,
+#     verbose=1, tensorboard_log="./tensorboard_dir/")
+model = SAC.load('model_ckp/progress_sac_rectangle_tolerance_pi18_pos_tol_2_reward_scale_10_map_empty')
 print(model.policy)
+
+model.set_env(env, force_reset=True)
 
 # Create dir 
 ckp_dir = 'model_ckp'
 if not os.path.exists(ckp_dir): 
     os.makedirs(ckp_dir) 
 
-model.learn(
-    total_timesteps=100000, log_interval=10, progress_bar=True, reset_num_timesteps=True,
-    tb_log_name=exp_name)
-model.save(os.path.join(ckp_dir, exp_name))
-
 for _ in range(50):
     model.learn(
         total_timesteps=50000, log_interval=10, progress_bar=True, reset_num_timesteps=False,
         tb_log_name=exp_name)
     model.save(os.path.join(ckp_dir, exp_name))
-
-
-
-# for m_n in [
-#     'empty', 'frame', 'horizontal_corridor', 'vertical_corridor','4_circles_wide',
-#     '1_circle', '1_rectangle', '1_triangle'
-#     ]:
-#     run_experiment(m_n)
-
-"""
-Increase the difficulty.
-Maps:
-- Empty
-- Large obstacle in the center
-- Corridors
-- 4 circles wide
-
-
-"""
