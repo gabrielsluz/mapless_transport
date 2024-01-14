@@ -92,4 +92,7 @@ for _ in range(50):
 Curriculum test:
 - Empty
 - Circle + rectangle + triangle
+
+Atual experimento para colocar no texto:
+- Curriculum learning versus normal
 """

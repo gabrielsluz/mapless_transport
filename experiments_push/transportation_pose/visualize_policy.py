@@ -33,7 +33,7 @@ config = TransportationEnvConfig(
         min_force_length=0.1,
         goal_tolerance={'pos':2, 'angle':np.pi/18}
     ),
-    max_steps = 500,
+    max_steps = 100,
     previous_obs_queue_len = 2,
     reward_scale=10.0
 )
@@ -41,7 +41,7 @@ config = TransportationEnvConfig(
 obs_l_dict = {
     k: obstacle_l_dict[k] 
     for k in [
-        'empty'
+        'empty', '1_circle', '1_rectangle', '1_triangle'
         # 'empty', 'frame', 'horizontal_corridor', 'vertical_corridor', '4_circles_wide',
         # '1_circle', '1_rectangle', '1_triangle',
         # 'circle_line', 'small_4_circles',
@@ -50,7 +50,7 @@ obs_l_dict = {
 }
 env = TransportationMixEnv(config, obs_l_dict)
 
-model = SAC.load('model_ckp/progress_sac_rectangle_tolerance_pi18_pos_tol_2_reward_scale_10_map_empty')
+model = SAC.load('model_ckp/progress_sac_rectangle_tolerance_pi18_pos_tol_2_reward_scale_10_map_large_obstacle_middle')
 print(model.policy)
 
 scene_buffer = CvDrawBuffer(window_name="Simulation", resolution=(1024,1024))

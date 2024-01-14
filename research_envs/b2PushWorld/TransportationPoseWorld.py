@@ -77,6 +77,9 @@ class RayCastClosestCallback(b2RayCastCallback):
         self.hit = True
         self.fixture = fixture
         self.point = b2Vec2(point)
+        print('Hit laser')
+        print('\tFraction: ', fraction)
+        print('\tType: ', fixture.body.userData['type'])
         if self.fixture.body.userData['type'] != 'obstacle':
             return -1
         return fraction
@@ -306,6 +309,7 @@ class TransportationWorld:
         point1 = self.agent.agent_rigid_body.position
         # agent_ang = self.agent.agent_rigid_body.angle
         agent_ang = 0.0
+        print('START RAY CASTING')
 
         ray_ang = self.ang_min
         for _ in range(self.n_rays):
@@ -313,6 +317,7 @@ class TransportationWorld:
             ray_ang += ang_inc
             point2 = point1 + self.range_max * b2Vec2(np.cos(ang), np.sin(ang))
             callback = RayCastClosestCallback()
+            print('Ray angle: ',ray_ang)
             self.world.RayCast(callback, point1, point2)
 
             if callback.hit:
