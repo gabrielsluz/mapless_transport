@@ -67,8 +67,8 @@ class TransportationEnv(gym.Env):
         self.reward_scale = config.reward_scale
 
         # Subgoals parameters
-        self.max_subgoal_pos_dist = 20.0
-        self.min_subgoal_pos_dist = 15.0
+        self.max_subgoal_pos_dist = 10.0
+        self.min_subgoal_pos_dist = 12.0
         self.max_subgoal_angle_dist = np.pi/12
 
         self.obj_vertices = self.world.obj.obj_rigid_body.fixtures[0].shape.vertices
@@ -95,22 +95,99 @@ class TransportationEnv(gym.Env):
 
         return subgoal_pos, subgoal_angle
 
+    # def _gen_subgoal(self):
+    #     # Find the forbidden lines => likely to have obstacles
+    #     forbidden_lines = []
+    #     range_l, _, point_l = self.world.get_laser_readings()
+    #     agent_pos = self.world.agent.agent_rigid_body.position
+    #     for i, p in enumerate(point_l):
+    #         if range_l[i] < self.world.range_max:
+    #             # Start point = p
+    #             # End point: line from agent to p extended to range_max
+    #             dir_vec = (p - agent_pos)
+    #             dir_vec.Normalize()
+    #             end_p = agent_pos + dir_vec * self.world.range_max
+    #             forbidden_lines.append((
+    #                 (p[0], p[1]), 
+    #                 (end_p[0], end_p[1])
+    #             ))
+        
+    #     sg_candidates = [self._gen_subgoal_candidate() for _ in range(100)]
+
+    #     # Check if valid:
+    #     min_dist = None
+    #     min_sg = sg_candidates[0]
+
+    #     transform_matrix = b2Transform()
+    #     transform_matrix.SetIdentity()
+    #     self.is_valid_sg = []
+    #     for sg in sg_candidates:
+    #         # Create polygon on pos and angle, based on the object
+    #         transform_matrix.Set(sg[0], sg[1])
+    #         vertices = [(transform_matrix * v) for v in self.obj_vertices]
+    #         poly = Polygon(vertices)
+
+    #         # Check if the subgoal is in the forbidden lines
+    #         is_valid = True
+    #         for line in forbidden_lines:
+    #             if poly.intersects(LineString([line[0], line[1]])):
+    #                 is_valid = False
+    #                 break
+    #         self.is_valid_sg.append(is_valid)
+
+    #         if is_valid:
+    #             dist = (self.world.goal['pos'] - b2Vec2(sg[0])).length
+    #             if min_dist is None or dist < min_dist:
+    #                 min_dist = dist
+    #                 min_sg = sg
+
+
+    #     self.forbidden_lines = forbidden_lines
+    #     self.sg_candidates = sg_candidates
+
+    #     return min_sg
+
     def _gen_subgoal(self):
         # Find the forbidden lines => likely to have obstacles
-        forbidden_lines = []
+        forbidden_polys = []
         range_l, _, point_l = self.world.get_laser_readings()
         agent_pos = self.world.agent.agent_rigid_body.position
+        # Always forward
         for i, p in enumerate(point_l):
+            next_i = (i+1) % len(point_l)
+            next_p = point_l[next_i]
+            next_p_points = [(next_p[0], next_p[1])]
+            if range_l[next_i] < self.world.range_max:
+                dir_vec = (next_p - agent_pos)
+                dir_vec.Normalize()
+                next_p_end = agent_pos + dir_vec * self.world.range_max
+                next_p_points = [
+                    (next_p_end[0], next_p_end[1]),
+                    (next_p[0], next_p[1])
+                ]
+            # Obstacle detected in i
             if range_l[i] < self.world.range_max:
+                # Assemble quadrilateral with last point and the next one
                 # Start point = p
                 # End point: line from agent to p extended to range_max
                 dir_vec = (p - agent_pos)
                 dir_vec.Normalize()
                 end_p = agent_pos + dir_vec * self.world.range_max
-                forbidden_lines.append((
-                    (p[0], p[1]), 
-                    (end_p[0], end_p[1])
-                ))
+                forbidden_polys.append(
+                    Polygon([
+                        *next_p_points,
+                        (p[0], p[1]), 
+                        (end_p[0], end_p[1])
+                    ])
+                )
+            # Obstacle detected in the next point
+            elif range_l[next_i] < self.world.range_max:
+                forbidden_polys.append(
+                    Polygon([
+                        *next_p_points,
+                        (p[0], p[1])
+                    ])
+                )
         
         sg_candidates = [self._gen_subgoal_candidate() for _ in range(100)]
 
@@ -129,8 +206,8 @@ class TransportationEnv(gym.Env):
 
             # Check if the subgoal is in the forbidden lines
             is_valid = True
-            for line in forbidden_lines:
-                if poly.intersects(LineString([line[0], line[1]])):
+            for f_p in forbidden_polys:
+                if poly.intersects(f_p):
                     is_valid = False
                     break
             self.is_valid_sg.append(is_valid)
@@ -142,7 +219,7 @@ class TransportationEnv(gym.Env):
                     min_sg = sg
 
 
-        self.forbidden_lines = forbidden_lines
+        self.forbidden_polys = forbidden_polys
         self.sg_candidates = sg_candidates
 
         return min_sg
@@ -283,6 +360,11 @@ class TransportationEnv(gym.Env):
         self.world.obj.DrawInPose(subgoal[0], subgoal[1],
                                    self.world.pixels_per_meter, screen, (255, 255, 0), -1)
 
+        # Draw the forbidden_polys
+        for poly in self.forbidden_polys:
+            vertices = list(poly.exterior.coords)
+            vertices = [self.world.worldToScreen(v) for v in vertices]
+            cv2.fillPoly(screen, [np.array(vertices)], (255, 0, 0))
 
         for i in range(len(self.sg_candidates)):
             sg = self.sg_candidates[i]
@@ -291,15 +373,11 @@ class TransportationEnv(gym.Env):
                 cv2.circle(screen, sg, 5, (0, 255, 0), -1)
             else:
                 cv2.circle(screen, sg, 5, (255, 0, 0), -1)
-        # for sg in self.sg_candidates:
-        #     # Draw using cv2.circle
-        #     sg = self.world.worldToScreen(sg[0])
-        #     cv2.circle(screen, sg, 5, (0, 255, 0), -1)
         # Draw the forbidden_lines
-        for line in self.forbidden_lines:
-            p1 = self.world.worldToScreen(line[0])
-            p2 = self.world.worldToScreen(line[1])
-            cv2.line(screen, p1, p2, (255, 0, 0), 1)
+        # for line in self.forbidden_lines:
+        #     p1 = self.world.worldToScreen(line[0])
+        #     p2 = self.world.worldToScreen(line[1])
+        #     cv2.line(screen, p1, p2, (255, 0, 0), 1)
         return screen
 
     def close(self):
