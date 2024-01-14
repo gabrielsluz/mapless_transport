@@ -121,7 +121,7 @@ if __name__ == "__main__":
                 # }
 
             ],
-            n_rays = 8,
+            n_rays = 36,
             range_max = 25.0,
             agent_type = 'continuous',
             max_force_length=1.0,

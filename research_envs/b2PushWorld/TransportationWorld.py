@@ -74,11 +74,11 @@ class RayCastClosestCallback(b2RayCastCallback):
         returning 1, you continue with the original ray clipping. By returning
         -1, you will filter out the current fixture (the ray will not hit it).
         '''
+        if fixture.body.userData['type'] != 'obstacle':
+            return -1
         self.hit = True
         self.fixture = fixture
         self.point = b2Vec2(point)
-        if self.fixture.body.userData['type'] != 'obstacle':
-            return -1
         return fraction
 
 
