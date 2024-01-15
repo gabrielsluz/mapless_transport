@@ -67,8 +67,8 @@ class TransportationEnv(gym.Env):
         self.reward_scale = config.reward_scale
 
         # Subgoals parameters
-        self.max_subgoal_pos_dist = 10.0
-        self.min_subgoal_pos_dist = 12.0
+        self.max_subgoal_pos_dist = 25.0
+        self.min_subgoal_pos_dist = 25.0
         self.max_subgoal_angle_dist = np.pi/12
 
         self.obj_vertices = self.world.obj.obj_rigid_body.fixtures[0].shape.vertices
@@ -84,9 +84,13 @@ class TransportationEnv(gym.Env):
         neg = 1 if random.randint(0, 1) == 0 else -1
         rand_dist = neg * rand_dist
         rand_rad = random.uniform(0, 2*np.pi)
+        # subgoal_pos = [
+        #     self.world.obj.obj_rigid_body.position.x + rand_dist * np.cos(rand_rad),
+        #     self.world.obj.obj_rigid_body.position.y + rand_dist * np.sin(rand_rad)
+        # ]
         subgoal_pos = [
-            self.world.obj.obj_rigid_body.position.x + rand_dist * np.cos(rand_rad),
-            self.world.obj.obj_rigid_body.position.y + rand_dist * np.sin(rand_rad)
+            self.world.agent.agent_rigid_body.position.x + rand_dist * np.cos(rand_rad),
+            self.world.agent.agent_rigid_body.position.y + rand_dist * np.sin(rand_rad)
         ]
 
         obj_angle = math.fmod(self.world.obj.obj_rigid_body.angle, 2*math.pi)

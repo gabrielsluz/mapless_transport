@@ -122,7 +122,7 @@ if __name__ == "__main__":
 
             ],
             n_rays = 24,
-            range_max = 15.0,
+            range_max = 25.0,
             agent_type = 'continuous',
             max_force_length=1.0,
             min_force_length=0.0,
