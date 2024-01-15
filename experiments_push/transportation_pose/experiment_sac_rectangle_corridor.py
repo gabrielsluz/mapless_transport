@@ -33,7 +33,7 @@ config = TransportationEnvConfig(
     reward_scale=10.0
 )
 
-exp_name = 'progress_sac_rectangle_tolerance_pi18_pos_tol_2_reward_scale_10_corridor_death_width_10'
+exp_name = 'progress_sac_rectangle_tolerance_pi18_pos_tol_2_reward_scale_10_corridor_death_width_5'
 
 obs_l_dict = {
     k: obstacle_l_dict[k] 

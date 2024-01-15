@@ -66,7 +66,7 @@ class TransportationEnv(gym.Env):
 
          # Corridor variables
         self.start_obj_pos = b2Vec2(self.world.obj.obj_rigid_body.position)
-        self.max_corr_width = 10.0
+        self.max_corr_width = 5.0
         # Corridor line: [a, b] => ax + b = y
         # From points: self.start_obj_pos e self.world.goal
         self.corr_line = [
