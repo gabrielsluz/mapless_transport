@@ -19,6 +19,17 @@ def render():
     scene_buffer.Draw()
     cv2.waitKey(100)
 
+def set_goal_on_click(event,x,y,flags,param):
+    global wait_bool, obs, info
+    if event == cv2.EVENT_LBUTTONDOWN:
+        # Convert from image coordinates to world coordinates
+        goal = {'pos':b2Vec2(
+            x / env.cur_env.world.pixels_per_meter, 
+            y / env.cur_env.world.pixels_per_meter), 'angle': 0.0}
+        obs, info = set_new_goal(env.cur_env, goal)
+        wait_bool = False
+        # cv2.circle(img,(x,y),100,(255,0,0),-1)
+        # mouseX,mouseY = x,y
 
 def set_new_goal(self, new_goal={'pos':b2Vec2(0,0), 'angle': 0.0}):
     self.world.goal = new_goal
@@ -58,7 +69,7 @@ config = TransportationEnvConfig(
 obs_l_dict = {
     k: obstacle_l_dict[k] 
     for k in [
-        'empty',
+        '4_circles_wide',
         # 'empty', 'frame', 'horizontal_corridor', 'vertical_corridor', '4_circles_wide',
         # '1_circle', '1_rectangle', '1_triangle',
         # 'circle_line', 'small_4_circles',
@@ -72,31 +83,29 @@ print(model.policy)
 
 scene_buffer = CvDrawBuffer(window_name="Simulation", resolution=(1024,1024))
 
-goal_l = [
-    {'pos':b2Vec2(10,10), 'angle': 0.0},
-    {'pos':b2Vec2(20,20), 'angle': 0.0},
-    {'pos':b2Vec2(20,40), 'angle': 0.0},
-    {'pos':b2Vec2(40,20), 'angle': 0.0},
-    {'pos':b2Vec2(40,40), 'angle': 0.0}
-]
-goal_i = 0
-
 render()
-env.reset()
-obs, info = set_new_goal(env.cur_env, goal_l[goal_i])
+cv2.setMouseCallback("Simulation",set_goal_on_click)
+
+obs, info = env.reset()
+
+wait_bool = False
 
 acc_reward = 0
 success_l = []
 while True:
+    if wait_bool:
+        render()
+        continue
     action, _states = model.predict(obs, deterministic=True)
     obs, reward, terminated, truncated, info = env.step(action)
     acc_reward += reward
     render()
     if terminated or truncated:
         success_l.append(info['is_success'])
-        goal_i += 1
-        obs, info = set_new_goal(env.cur_env, goal_l[goal_i])
+        # goal_i += 1
+        # obs, info = set_new_goal(env.cur_env, goal_l[goal_i])
         print('Reward: ', acc_reward)
         acc_reward = 0
         print('Success rate: ', sum(success_l) / len(success_l))
+        wait_bool = True
 

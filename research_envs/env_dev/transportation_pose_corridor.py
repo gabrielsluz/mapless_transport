@@ -38,9 +38,44 @@ def key_to_action(key):
     return action
 
 
-
 def render():
-    scene_buffer.PushFrame(env.render())
+    screen = env.render()
+    # Draw a line ax + b = y
+    corr_line = env.cur_env.corr_line
+    a,b = corr_line[0], corr_line[1]
+
+    # Find the paralel lines
+    w = env.cur_env.max_corr_width
+    angle_line_to_x = np.arctan2(a, 1)
+    # Upper line:
+    x = w * np.cos(np.pi/2 + angle_line_to_x)
+    y = w * np.sin(np.pi/2 + angle_line_to_x) + b
+    high_b = y - a * x
+
+    # Lower line:
+    x = w * np.cos(-np.pi/2 + angle_line_to_x)
+    y = w * np.sin(-np.pi/2 + angle_line_to_x) + b
+    low_b = y - a * x
+
+    print(a,b, low_b, high_b)
+
+    start = env.cur_env.world.worldToScreen(
+        (0, low_b)
+    )
+    end = env.cur_env.world.worldToScreen(
+        (100, 100*a + low_b)
+    )
+    screen = cv2.line(screen, start, end, color=(0, 0, 255), thickness=2)
+
+    start = env.cur_env.world.worldToScreen(
+        (0, high_b)
+    )
+    end = env.cur_env.world.worldToScreen(
+        (100, 100*a + high_b)
+    )
+    screen = cv2.line(screen, start, end, color=(0, 0, 255), thickness=2)
+
+    scene_buffer.PushFrame(screen)
     scene_buffer.Draw()
     cv2.waitKey(1)
 
