@@ -22,18 +22,19 @@ config = TransportationEnvConfig(
             object_desc
             ],
         n_rays = 0,
-        range_max = 25.0,
         agent_type = 'continuous',
         max_force_length=5.0,
         min_force_length=0.1,
-        goal_tolerance={'pos':2, 'angle':np.pi/18}
+        goal_tolerance={'pos':2, 'angle':np.pi/18},
+        max_obj_dist=10.0
     ),
     max_steps = 500,
     previous_obs_queue_len = 0,
-    reward_scale=10.0
+    reward_scale=10.0,
+    max_corr_width=10.0
 )
 
-exp_name = 'progress_sac_rectangle_tolerance_pi18_pos_tol_2_reward_scale_10_corridor_death_width_5'
+exp_name = 'progress_sac_rectangle_tolerance_pi18_pos_tol_2_reward_scale_10_corridor_full_death_width_10'
 
 obs_l_dict = {
     k: obstacle_l_dict[k] 
@@ -63,22 +64,3 @@ for _ in range(200):
         total_timesteps=50000, log_interval=10, progress_bar=True, reset_num_timesteps=False,
         tb_log_name=exp_name)
     model.save(os.path.join(ckp_dir, exp_name))
-
-
-
-# for m_n in [
-#     'empty', 'frame', 'horizontal_corridor', 'vertical_corridor','4_circles_wide',
-#     '1_circle', '1_rectangle', '1_triangle'
-#     ]:
-#     run_experiment(m_n)
-
-"""
-Increase the difficulty.
-Maps:
-- Empty
-- Large obstacle in the center
-- Corridors
-- 4 circles wide
-
-
-"""

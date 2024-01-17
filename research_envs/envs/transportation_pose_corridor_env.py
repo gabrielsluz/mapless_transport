@@ -17,6 +17,8 @@ class TransportationEnvConfig:
     max_steps: int = 1000
     previous_obs_queue_len: int = 0
     reward_scale: float = 1.0
+    max_corr_width: float = 10.0
+
 
 class TransportationEnv(gym.Env):
     metadata = {'render.modes': ['human']}
@@ -66,7 +68,7 @@ class TransportationEnv(gym.Env):
 
          # Corridor variables
         self.start_obj_pos = b2Vec2(self.world.obj.obj_rigid_body.position)
-        self.max_corr_width = 5.0
+        self.max_corr_width = config.max_corr_width
         # Corridor line: [a, b] => ax + b = y
         # From points: self.start_obj_pos e self.world.goal
         self.corr_line = [
@@ -104,20 +106,20 @@ class TransportationEnv(gym.Env):
             ])
         
         # Corridor observation
-        # Find the closest point to the object center in the corridor line
+        # Find the closest point to the agent center in the corridor line
         # ax + by +c = 0
         a = self.corr_line[0]
         b = -1.0
         c = self.corr_line[1]
-        p0 = self.world.obj.obj_rigid_body.position
+        p0 = self.world.agent.agent_rigid_body.position
         p_x = (b*(b*p0.x - a*p0.y) - a*c) / (a*a + b*b)
         p_y = (a*(-b*p0.x + a*p0.y) - b*c) / (a*a + b*b)
 
-        obj_to_p = b2Vec2(p_x, p_y) - self.world.obj.obj_rigid_body.position
+        v = b2Vec2(p_x, p_y) - p0
         # Calc angle between agent_to_obj and x-axis
-        angle = np.arctan2(obj_to_p[1], obj_to_p[0])
+        angle = np.arctan2(v[1], v[0])
         corr_obs = np.array([
-            angle/np.pi, min(obj_to_p.length/(self.max_corr_width), 1.0)
+            angle/np.pi, min(v.length/(self.max_corr_width), 1.0)
             ])
 
         return np.concatenate((laser_readings, goal_obs, obj_obs, corr_obs), dtype=np.float32)
@@ -153,13 +155,26 @@ class TransportationEnv(gym.Env):
         return self.world.did_object_reach_goal()
     
     def _check_death(self):
-        # Check corridor
-        dist_obj_corr = self.distance_point_to_line(
-            self.world.obj.obj_rigid_body.position,
+        # Check corridor for agent
+        dist_corr = self.distance_point_to_line(
+            self.world.agent.agent_rigid_body.position,
             self.start_obj_pos,
             self.world.goal['pos']
         )
-        if dist_obj_corr > self.max_corr_width: return True
+        if dist_corr + self.world.agent.agent_radius > self.max_corr_width: return True
+
+        # Check corridor for each vertex of the object
+        body = self.world.obj.obj_rigid_body
+        for f_i in range(len(body.fixtures)):
+            vertices = [(body.transform * v) for v in body.fixtures[f_i].shape.vertices]
+            for v in vertices:
+                dist_corr = self.distance_point_to_line(
+                    v,
+                    self.start_obj_pos,
+                    self.world.goal['pos']
+                )
+                if dist_corr > self.max_corr_width: return True
+
         obj_dist = self.world.agent_to_object_vector().length
         return self.world.did_agent_collide() or self.world.did_object_collide() or obj_dist > self.max_obj_dist
 
@@ -198,7 +213,7 @@ class TransportationEnv(gym.Env):
         # Limits the maximum reward to [-1.0, 2.0] on average
         progress_reward = 0.0
         success_reward = 0.5
-        death_penalty = -1.0	
+        death_penalty = -1.0
         time_penalty = -0.01
 
         # Success

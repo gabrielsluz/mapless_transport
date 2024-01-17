@@ -125,15 +125,16 @@ if __name__ == "__main__":
 
             ],
             n_rays = 0,
-            range_max = 25.0,
             agent_type = 'continuous',
             max_force_length=1.0,
             min_force_length=0.0,
-            goal_tolerance={'pos':2, 'angle':np.pi/18}
+            goal_tolerance={'pos':2, 'angle':np.pi/18},
+            max_obj_dist=10.0,
         ),
         max_steps=500,
         previous_obs_queue_len=0,
-        reward_scale=1.0
+        reward_scale=1.0,
+        max_corr_width=10.0
     )
     obs_l_dict = {
         k: obstacle_l_dict[k] 

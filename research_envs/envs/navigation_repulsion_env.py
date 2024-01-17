@@ -68,8 +68,12 @@ class NavigationEnv(gym.Env):
         # self.repulsion_min_dist = 5.0
         self.repulsion_max_dist = config.world_config.range_max
         self.repulsion_max_motion_len = 1.0
-        self.repulsion_max_angle_diff = np.pi / 6
+        self.repulsion_max_angle_diff = np.pi / 4
         self.n_rays = n_rays
+        # Normalize such that repulsion_f = 1.0 at maximum
+        # We consider 180 degrees => maximum repulsion rays = number of rays / 2
+        # Dividing into two equal parts of 90 degrees => n_rays / 4
+        # Ponderated by cossine similarity of each ray
         ang_step_sz = (self.repulsion_max_angle_diff) / (self.n_rays / ((2*np.pi)/self.repulsion_max_angle_diff))
         self.max_repulsion_f = 2 * np.sum(np.cos(np.arange(0, self.repulsion_max_angle_diff, ang_step_sz)))
 
@@ -119,8 +123,8 @@ class NavigationEnv(gym.Env):
     
     def _calc_repulsion(self):
         agent_pos = self.world.agent.agent_rigid_body.position
-        # Find motion direction last_pos
-        motion_dir = agent_pos - self.last_pos
+        # Find motion direction
+        motion_dir = agent_pos - self.last_agent_pos
         motion_len = motion_dir.length
         motion_dir.Normalize()
 
@@ -139,11 +143,6 @@ class NavigationEnv(gym.Env):
                 # Squared repulsion
                 repulsion_f += cos_sim * (1.0  - p_len / self.repulsion_max_dist)**2
                 # repulsion_f += cos_sim * (1.0  - p_len / self.repulsion_max_dist)
-        
-        # Normalize such that repulsion_f = 1.0 at maximum
-        # We consider 180 degrees => maximum repulsion rays = number of rays / 2
-        # Dividing into two equal parts of 90 degrees => n_rays / 4
-        # Ponderated by cossine similarity of each ray
         repulsion_f /= self.max_repulsion_f
 
         # ponderate by motion length
@@ -156,12 +155,11 @@ class NavigationEnv(gym.Env):
             return 1.0
         else:
             repulsion_f = self._calc_repulsion()
-            print("Repulsion: ", repulsion_f)
             # # Progress reward => getting closer to goal
             # self.cur_dist = self.world.agent_to_goal_vector().length
             # progress_reward = (self.last_dist - self.cur_dist)
             # return progress_reward - 0.2 # time penalty
-            return -0.01
+            return -0.01 - (0.05 * repulsion_f)
         
     def _set_laser_readings(self):
         self.range_l, self.type_l, self.point_l = self.world.get_laser_readings()
@@ -170,7 +168,7 @@ class NavigationEnv(gym.Env):
         # (observation, reward, terminated, truncated, info)
         self.prev_action_queue.append(action)
         self.last_dist = self.world.agent_to_goal_vector().length
-        self.last_pos = b2Vec2(self.world.agent.agent_rigid_body.position)
+        self.last_agent_pos = b2Vec2(self.world.agent.agent_rigid_body.position)
 
         self.world.take_action(action)
         self._set_laser_readings()
@@ -195,6 +193,7 @@ class NavigationEnv(gym.Env):
 
         self.prev_action_queue.clear()
         # self.prev_obs_queue.clear()
+        self._set_laser_readings()
         return self._gen_observation(), {}
 
     def render(self, mode='human'):
