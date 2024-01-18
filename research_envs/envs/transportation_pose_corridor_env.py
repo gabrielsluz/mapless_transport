@@ -18,6 +18,7 @@ class TransportationEnvConfig:
     previous_obs_queue_len: int = 0
     reward_scale: float = 1.0
     max_corr_width: float = 10.0
+    max_goal_dist: float = 50.0
 
 
 class TransportationEnv(gym.Env):
@@ -62,7 +63,7 @@ class TransportationEnv(gym.Env):
             low=-np.inf, high=np.inf, shape=self.observation_shape, dtype=np.float32)
 
         self.max_obj_dist = self.world.max_obj_dist
-        self.max_goal_dist = max(self.world.width, self.world.height)
+        self.max_goal_dist = config.max_goal_dist# max(self.world.width, self.world.height)
 
         self.reward_scale = config.reward_scale
 

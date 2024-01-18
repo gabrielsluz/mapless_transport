@@ -129,7 +129,7 @@ if __name__ == "__main__":
             max_force_length=1.0,
             min_force_length=0.0,
             goal_tolerance={'pos':2, 'angle':np.pi/18},
-            max_obj_dist=10.0,
+            max_obj_dist=10.0
         ),
         max_steps=500,
         previous_obs_queue_len=0,

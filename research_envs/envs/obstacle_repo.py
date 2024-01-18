@@ -391,6 +391,19 @@ obstacle_l_dict = {
         {'name':'Circle', 'pos':(40.0, 12.0), 'radius':4.0},
         {'name':'Circle', 'pos':(12.0, 40.0), 'radius':4.0},
         {'name':'Circle', 'pos':(40.0, 40.0), 'radius':4.0},
-    ]
+    ],
+
+
+    # Large pushing maps: 
+    'parallel_walls': [
+        # Frame
+        {'name':'Rectangle', 'pos':(45.0, 0.0), 'height':5.0, 'width':90.0},
+        {'name':'Rectangle', 'pos':(45.0, 80.0), 'height':5.0, 'width':90.0},
+        {'name':'Rectangle', 'pos':(0.0, 40.0), 'height':80.0, 'width':5.0},
+        {'name':'Rectangle', 'pos':(90.0, 40.0), 'height':80.0, 'width':5.0},
+        # Inside walls
+        {'name':'Rectangle', 'pos':(30.0, 55.0), 'height':50.0, 'width':5.0},
+        {'name':'Rectangle', 'pos':(60.0, 25.0), 'height':50.0, 'width':5.0},
+    ],
 
 }
