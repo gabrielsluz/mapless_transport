@@ -105,7 +105,6 @@ class NavigationWorldConfig:
 
 class NavigationWorld:
     def __init__(self, config: NavigationWorldConfig):
-        print(config)
         # ----------- World configuration -----------
         self.world = b2World(gravity=(0, 0.0), doSleep=False)
         # the timestep is used to simulate discrete steps through the
