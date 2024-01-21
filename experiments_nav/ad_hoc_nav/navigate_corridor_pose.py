@@ -53,6 +53,23 @@ def _gen_rectangle_from_center_line(self, start_p, end_p):
         (end_p[0] + vec[0], end_p[1] + vec[1])
     ]
 
+def _calc_goal_dist(subgoal, final_goal):
+    pos_dist = (final_goal['pos'] - b2Vec2(subgoal['pos'])).length
+    pos_dist = pos_dist / max_subgoal_pos_dist
+
+    # Calculate the angle between the object and the goal
+    angle = subgoal['angle'] % (2*np.pi)
+    if angle < 0.0: angle += 2*np.pi
+    angle_diff = final_goal['angle'] - angle
+    if angle_diff > np.pi:
+        angle_diff -= 2*np.pi
+    elif angle_diff < -np.pi:
+        angle_diff += 2*np.pi
+    angle_dist = abs(angle_diff) / np.pi
+
+    # Normalize pos_dist and add to angle_dist
+    return pos_dist + angle_dist
+
 # Ad Hoc Navigation
 def find_best_action(env):
     global forbidden_polys, sg_candidates, is_valid_sg, chosen_sg, last_theta
@@ -127,7 +144,8 @@ def find_best_action(env):
                 break
         is_valid_sg.append(is_valid)
         if is_valid:
-            dist = (self.world.goal['pos'] - b2Vec2(sg['pos'])).length
+            # dist = (self.world.goal['pos'] - b2Vec2(sg['pos'])).length
+            dist = _calc_goal_dist(sg, self.world.goal)
             if min_dist is None or dist < min_dist:
                 min_dist = dist
                 min_sg = sg
@@ -181,10 +199,10 @@ config = NavigationEnvConfig(
         obstacle_l = [],
         n_rays = 72,
         range_max = 25.0,
-        max_force_length=0.5,
+        max_force_length=1.0,
         min_force_length=0.1,
-        width=90.0,
-        height=80.0,
+        width=100.0,
+        height=100.0,
         goal_tolerance={'pos': 2.0, 'angle': np.deg2rad(180)}
     ),
     max_steps = 500,
@@ -204,7 +222,7 @@ obs_l_dict = {
 }
 env = NavigationMixEnv(config, obs_l_dict)
 
-min_subgoal_pos_dist = 15.0
+min_subgoal_pos_dist = 10.0
 max_subgoal_pos_dist = 15.0
 corridor_width = 10.0
 max_subgoal_angle_dist = np.pi/6

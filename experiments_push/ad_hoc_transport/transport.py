@@ -26,10 +26,25 @@ last_theta = 0.0
 chosen_sg = None
 
 def adjusted_check_death(self):
-    obj_dist = self.world.agent_to_object_vector().length
-    return self.world.did_agent_collide() or self.world.did_object_collide() or obj_dist > self.max_obj_dist
+    return self.world.did_agent_collide() or self.world.did_object_collide()
 
-def set_new_goal(self, new_goal={'pos':b2Vec2(0,0), 'angle': 0.0}):
+def adjusted_check_success(env):
+    self = env.world
+    reached_pos = (final_goal['pos'] - self.obj.obj_rigid_body.position).length < self.goal_tolerance['pos']
+
+    # Calculate the angle between the object and the goal
+    angle = self.obj.obj_rigid_body.angle % (2*np.pi)
+    if angle < 0.0: angle += 2*np.pi
+    angle_diff = final_goal['angle'] - angle
+    if angle_diff > np.pi:
+        angle_diff -= 2*np.pi
+    elif angle_diff < -np.pi:
+        angle_diff += 2*np.pi
+    reached_angle = abs(angle_diff) < self.goal_tolerance['angle']
+
+    return reached_pos and reached_angle
+
+def set_new_goal(self, new_goal={'pos':b2Vec2(0,0), 'angle': 0.0}):    
     self.world.goal = new_goal
     self.step_count = 0
     self.prev_action_queue.clear()
@@ -73,6 +88,23 @@ def _gen_rectangle_from_center_line(self, start_p, end_p):
         (end_p[0] - vec[0], end_p[1] - vec[1]),
         (end_p[0] + vec[0], end_p[1] + vec[1])
     ]
+
+def _calc_goal_dist(subgoal, final_goal):
+    pos_dist = (final_goal['pos'] - b2Vec2(subgoal['pos'])).length
+    pos_dist = pos_dist / max_subgoal_pos_dist
+
+    # Calculate the angle between the object and the goal
+    angle = subgoal['angle'] % (2*np.pi)
+    if angle < 0.0: angle += 2*np.pi
+    angle_diff = final_goal['angle'] - angle
+    if angle_diff > np.pi:
+        angle_diff -= 2*np.pi
+    elif angle_diff < -np.pi:
+        angle_diff += 2*np.pi
+    angle_dist = abs(angle_diff) / np.pi
+
+    # Normalize pos_dist and add to angle_dist
+    return pos_dist + angle_dist
 
 # Ad Hoc Navigation
 def find_best_subgoal(env):
@@ -138,7 +170,7 @@ def find_best_subgoal(env):
         robot_body = Polygon(vertices)
         # Union with the robot body
         corridor = Polygon(
-            _gen_rectangle_from_center_line(self, (agent_pos.x, agent_pos.y), sg['pos']))
+            _gen_rectangle_from_center_line(self, (self.world.obj.obj_rigid_body.position.x, self.world.obj.obj_rigid_body.position.y), sg['pos']))
         poly = corridor.union(robot_body)
         # Check if the subgoal is in the forbidden lines
         is_valid = True
@@ -148,7 +180,7 @@ def find_best_subgoal(env):
                 break
         is_valid_sg.append(is_valid)
         if is_valid:
-            dist = (final_goal['pos'] - b2Vec2(sg['pos'])).length
+            dist = _calc_goal_dist(sg, final_goal)
             if min_dist is None or dist < min_dist:
                 min_dist = dist
                 min_sg = sg
@@ -182,12 +214,17 @@ def render():
     screen = env.render()
     self = env.cur_env
 
-    # Draw the forbidden_polys
-    # for poly in forbidden_polys:
-    #     vertices = list(poly.exterior.coords)
-    #     vertices = [self.world.worldToScreen(v) for v in vertices]
-    #     cv2.fillPoly(screen, [np.array(vertices)], (255, 0, 0))
+    #Draw the forbidden_polys
+    for poly in forbidden_polys:
+        vertices = list(poly.exterior.coords)
+        vertices = [self.world.worldToScreen(v) for v in vertices]
+        cv2.fillPoly(screen, [np.array(vertices)], (255, 0, 0))
 
+    # print('Num is_valid:', sum(is_valid_sg))
+    # If num_is_valid = 0, stop the screen for a little
+    if sum(is_valid_sg) == 0:
+        print('No valid subgoals')
+        cv2.waitKey(1000)
     for i in range(len(sg_candidates)):
         sg = sg_candidates[i]
         sg = self.world.worldToScreen(sg['pos'])
@@ -197,10 +234,11 @@ def render():
             cv2.circle(screen, sg, 5, (255, 0, 0), -1)
     
     # Draw the chosen_sg corridor
-    # if chosen_sg is not None:
-    #     corridor = _gen_rectangle_from_center_line(self, (self.world.agent.agent_rigid_body.position.x, self.world.agent.agent_rigid_body.position.y), chosen_sg)
-    #     corridor = [self.world.worldToScreen(v) for v in corridor]
-    #     cv2.fillPoly(screen, [np.array(corridor)], (0, 255, 0))
+    if chosen_sg is not None:
+        corridor = _gen_rectangle_from_center_line(self, (self.world.obj.obj_rigid_body.position.x, self.world.obj.obj_rigid_body.position.y), chosen_sg['pos'])
+        corridor = [self.world.worldToScreen(v) for v in corridor]
+        # cv2.fillPoly(screen, [np.array(corridor)], (0, 255, 0))
+        cv2.polylines(screen, [np.array(corridor)], isClosed=True, color=(0, 255, 0), thickness=4)
 
     # Draw final goal in yellow
     self.world.obj.DrawInPose(
@@ -210,7 +248,7 @@ def render():
 
     scene_buffer.PushFrame(screen)
     scene_buffer.Draw()
-    cv2.waitKey(25)
+    cv2.waitKey(50)
 
 object_desc = {'name': 'Rectangle', 'height': 10.0, 'width': 5.0}
 print(object_desc)
@@ -226,12 +264,12 @@ config = TransportationEnvConfig(
         agent_type = 'continuous',
         max_force_length=5.0,
         min_force_length=0.1,
-        width=90.0,
-        height=80.0,
+        width=100.0,
+        height=100.0,
         goal_tolerance={'pos':2, 'angle':np.pi/18},
         max_obj_dist=10.0
     ),
-    max_steps = 500,
+    max_steps = 100,
     previous_obs_queue_len = 0,
     reward_scale=10.0,
     max_corr_width=10.0
@@ -249,24 +287,27 @@ obs_l_dict = {
 }
 env = TransportationMixEnv(config, obs_l_dict)
 env.cur_env._check_death = types.MethodType(adjusted_check_death, env.cur_env)
+env.cur_env._check_success = types.MethodType(adjusted_check_success, env.cur_env)
 
 # Set parameters
 min_subgoal_pos_dist = 15.0
 max_subgoal_pos_dist = 15.0
 corridor_width = 10.0
-max_subgoal_angle_dist = np.pi/6
+max_subgoal_angle_dist = np.pi/4
 max_theta_change = np.pi/2
+update_subgoal_every = 1
 
 agent_vertices = env.cur_env.world.obj.obj_rigid_body.fixtures[0].shape.vertices
 
 # Goal
-final_goal = {'pos':b2Vec2(75, 15), 'angle': 0.0}
-
+final_goal = {'pos':b2Vec2(80, 15), 'angle': 3*np.pi/2}
 
 # Load agent
 model = SAC.load('model_ckp/progress_sac_rectangle_tolerance_pi18_pos_tol_2_reward_scale_10_corridor_full_death_width_10')
 
 scene_buffer = CvDrawBuffer(window_name="Simulation", resolution=(1024,1024))
+
+counter = 0
 
 render()
 obs, info = env.reset()
@@ -274,8 +315,12 @@ acc_reward = 0
 success_l = []
 while True:
     # Find the direction, take a simple step towards.
-    min_sg = find_best_subgoal(env.cur_env)
-
+    if sum(is_valid_sg) == 0: counter  = 0
+    if counter % update_subgoal_every == 0:
+        min_sg = find_best_subgoal(env.cur_env)
+        counter = 0
+    counter += 1
+    
     set_new_goal(env.cur_env, new_goal={'pos':b2Vec2(min_sg['pos']), 'angle': min_sg['angle']})
     obs = adjust_obs(obs)
     action, _states = model.predict(obs, deterministic=True)
@@ -285,7 +330,10 @@ while True:
     if terminated or truncated:
         success_l.append(info['is_success'])
         obs, info = env.reset()
+
         env.cur_env._check_death = types.MethodType(adjusted_check_death, env.cur_env)
+        env.cur_env._check_success = types.MethodType(adjusted_check_success, env.cur_env)
+
         print('Reward: ', acc_reward)
         acc_reward = 0
         print('Success rate: ', sum(success_l) / len(success_l))

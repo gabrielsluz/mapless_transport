@@ -397,13 +397,13 @@ obstacle_l_dict = {
     # Large pushing maps: 
     'parallel_walls': [
         # Frame
-        {'name':'Rectangle', 'pos':(45.0, 0.0), 'height':5.0, 'width':90.0},
-        {'name':'Rectangle', 'pos':(45.0, 80.0), 'height':5.0, 'width':90.0},
-        {'name':'Rectangle', 'pos':(0.0, 40.0), 'height':80.0, 'width':5.0},
-        {'name':'Rectangle', 'pos':(90.0, 40.0), 'height':80.0, 'width':5.0},
+        {'name':'Rectangle', 'pos':(50.0, 0.0), 'height':5.0, 'width':100.0},
+        {'name':'Rectangle', 'pos':(50.0, 100.0), 'height':5.0, 'width':100.0},
+        {'name':'Rectangle', 'pos':(0.0, 50.0), 'height':100.0, 'width':5.0},
+        {'name':'Rectangle', 'pos':(100.0, 50.0), 'height':100.0, 'width':5.0},
         # Inside walls
-        {'name':'Rectangle', 'pos':(30.0, 55.0), 'height':50.0, 'width':5.0},
-        {'name':'Rectangle', 'pos':(60.0, 25.0), 'height':50.0, 'width':5.0},
+        {'name':'Rectangle', 'pos':(30.0, 75.0), 'height':75.0, 'width':5.0},
+        {'name':'Rectangle', 'pos':(60.0, 25.0), 'height':75.0, 'width':5.0},
     ],
 
 }
