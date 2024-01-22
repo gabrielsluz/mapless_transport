@@ -265,10 +265,10 @@ def render():
     self = env.cur_env
 
     #Draw the forbidden_polys
-    for poly in forbidden_polys:
-        vertices = list(poly.exterior.coords)
-        vertices = [self.world.worldToScreen(v) for v in vertices]
-        cv2.fillPoly(screen, [np.array(vertices)], (255, 0, 0))
+    # for poly in forbidden_polys:
+    #     vertices = list(poly.exterior.coords)
+    #     vertices = [self.world.worldToScreen(v) for v in vertices]
+    #     cv2.fillPoly(screen, [np.array(vertices)], (255, 0, 0))
 
     # print('Num is_valid:', sum(is_valid_sg))
     # If num_is_valid = 0, stop the screen for a little
@@ -305,9 +305,9 @@ def save_video(frame_l):
     global video_counter
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
     f_name = 'videos/video_' + str(video_counter) + '.mp4'
-    out = cv2.VideoWriter(f_name, fourcc, 30, (frame_l[0].shape[0], frame_l[0].shape[1]))
+    out = cv2.VideoWriter(f_name, fourcc, 20, (frame_l[0].shape[1], frame_l[0].shape[0]))
     for frame in frame_l:
-        frame = (frame * 255).astype(np.uint8)
+        frame = frame.astype(np.uint8)
         out.write(frame)
     out.release()
 
@@ -402,9 +402,12 @@ while True:
     if terminated or truncated:
         success_l.append(info['is_success'])
         # Save video
-        if not info['is_success']:
-            save_video(frame_l)
+        # if not info['is_success']:
+        #     save_video(frame_l)
+        save_video(frame_l)
         frame_l = []
+
+        final_goal['angle'] = random.uniform(0, 2*np.pi)
 
         obs, info = env.reset()
 

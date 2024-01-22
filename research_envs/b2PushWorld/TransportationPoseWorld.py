@@ -280,8 +280,8 @@ class TransportationWorld:
         # Alterar
         self.obj.obj_rigid_body.position = b2Vec2(15, 75)
         # self.obj.obj_rigid_body.position = b2Vec2(81, 35)
-        # self.obj.obj_rigid_body.angle = random.uniform(0, 2*np.pi)
-        self.obj.obj_rigid_body.angle = np.pi/2
+        # self.obj.obj_rigid_body.angle = np.pi/2
+        self.obj.obj_rigid_body.angle = random.uniform(0, 2*np.pi)
 
         x_lim = [
             self.obj.obj_rigid_body.position.x - self.max_obj_dist*0.7071,
@@ -383,30 +383,30 @@ class TransportationWorld:
 
     def drawToBuffer(self):
         # clear previous buffer
-        screen = np.ones(shape=(self.screen_height, self.screen_width, 3), dtype=np.float32)
+        screen = 255 * np.ones(shape=(self.screen_height, self.screen_width, 3), dtype=np.uint8)
         # Draw obstacles
         for obs in self.obstacle_l:
-            obs.Draw(self.pixels_per_meter, screen, (0.5, 0.5, 0.5), -1)
+            obs.Draw(self.pixels_per_meter, screen, (128, 128, 128), -1)
         # Draw the object
         if self.object_collided == 0:
-            self.obj.Draw(self.pixels_per_meter, screen, (0, 0, 1, 0), -1)
-            self.drawArrow(screen, self.obj.GetPositionAsList() , self.obj.obj_rigid_body.angle, 10, (0, 0, 1, 0))
+            self.obj.Draw(self.pixels_per_meter, screen, (0, 0, 255), -1)
+            self.drawArrow(screen, self.obj.GetPositionAsList() , self.obj.obj_rigid_body.angle, 10, (0, 0, 255))
         else:
-            self.obj.Draw(self.pixels_per_meter, screen, (1, 0, 1, 0), -1)
-            self.drawArrow(screen, self.obj.GetPositionAsList() , self.obj.obj_rigid_body.angle, 10, (1, 0, 1, 0))
+            self.obj.Draw(self.pixels_per_meter, screen, (255, 0, 255), -1)
+            self.drawArrow(screen, self.obj.GetPositionAsList() , self.obj.obj_rigid_body.angle, 10, (255, 0, 255))
         # Draw max object dist
         screen_pos = self.worldToScreen(self.obj.GetPositionAsList())
-        cv2.circle(screen, screen_pos, int(self.max_obj_dist*self.pixels_per_meter), (0, 0.5, 0.5, 0), thickness=4, lineType=4)
+        cv2.circle(screen, screen_pos, int(self.max_obj_dist*self.pixels_per_meter), (100, 100, 100), thickness=4, lineType=4)
         # Draw goal
         self.obj.DrawInPose(
-            self.goal['pos'], self.goal['angle'], self.pixels_per_meter, screen, (0, 1, 0, 0), -1)
-        self.drawArrow(screen, self.goal['pos'], self.goal['angle'], 10, (0, 1, 0, 0))
+            self.goal['pos'], self.goal['angle'], self.pixels_per_meter, screen, (0, 255, 0), -1)
+        self.drawArrow(screen, self.goal['pos'], self.goal['angle'], 10, (0, 255, 0))
         # Draw agent
         screen_pos = self.worldToScreen(self.agent.GetPositionAsList())
         if self.agent_collided == 0:
-            cv2.circle(screen, screen_pos, int(self.agent.agent_radius*self.pixels_per_meter), (1, 0, 0, 0), -1)
+            cv2.circle(screen, screen_pos, int(self.agent.agent_radius*self.pixels_per_meter), (255, 0, 0), -1)
         else:
-            cv2.circle(screen, screen_pos, int(self.agent.agent_radius*self.pixels_per_meter), (0, 0, 1, 0), -1)
+            cv2.circle(screen, screen_pos, int(self.agent.agent_radius*self.pixels_per_meter), (255, 0, 255), -1)
         return screen
 
     def drawToBufferWithLaser(self):
@@ -416,32 +416,32 @@ class TransportationWorld:
         for point in laser_point_l:
             # if point is not None:
             screen_point = self.worldToScreen(point)
-            cv2.line(screen, screen_pos, screen_point, (0, 0, 1), 1)
+            cv2.line(screen, screen_pos, screen_point, (0, 0, 255), 1)
         return screen
 
     def drawToBufferObservation(self):
         # clear previous buffer
-        screen = np.ones(shape=(self.screen_height, self.screen_width, 3), dtype=np.float32)
+        screen = np.ones(shape=(self.screen_height, self.screen_width, 3), dtype=np.uint8)
         # Draw the object
         if self.object_collided == 0:
-            self.obj.Draw(self.pixels_per_meter, screen, (0, 0, 1, 0), -1)
-            self.drawArrow(screen, self.obj.GetPositionAsList() , self.obj.obj_rigid_body.angle, 10, (0, 0, 1, 0))
+            self.obj.Draw(self.pixels_per_meter, screen, (0, 0, 255), -1)
+            self.drawArrow(screen, self.obj.GetPositionAsList() , self.obj.obj_rigid_body.angle, 10, (0, 0, 255))
         else:
-            self.obj.Draw(self.pixels_per_meter, screen, (1, 0, 1, 0), -1)
-            self.drawArrow(screen, self.obj.GetPositionAsList() , self.obj.obj_rigid_body.angle, 10, (1, 0, 1, 0))
+            self.obj.Draw(self.pixels_per_meter, screen, (255, 0, 255), -1)
+            self.drawArrow(screen, self.obj.GetPositionAsList() , self.obj.obj_rigid_body.angle, 10, (255, 0, 255))
         # Draw max object dist
         screen_pos = self.worldToScreen(self.obj.GetPositionAsList())
-        cv2.circle(screen, screen_pos, int(self.max_obj_dist*self.pixels_per_meter), (0, 0.5, 0.5, 0), thickness=4, lineType=4)
+        cv2.circle(screen, screen_pos, int(self.max_obj_dist*self.pixels_per_meter), (0, 128, 128), thickness=4, lineType=4)
         # Draw goal
         self.obj.DrawInPose(
-            self.goal['pos'], self.goal['angle'], self.pixels_per_meter, screen, (0, 1, 0, 0), -1)
-        self.drawArrow(screen, self.goal['pos'], self.goal['angle'], 10, (0, 1, 0, 0))
+            self.goal['pos'], self.goal['angle'], self.pixels_per_meter, screen, (0, 255, 0), -1)
+        self.drawArrow(screen, self.goal['pos'], self.goal['angle'], 10, (0, 255, 0))
         # Lasers
         _, _, laser_point_l = self.get_laser_readings()
         screen_pos = self.worldToScreen(self.agent.GetPositionAsList())
         for point in laser_point_l:
             # if point is not None:
             screen_point = self.worldToScreen(point)
-            cv2.line(screen, screen_pos, screen_point, (0, 0, 1), 1)
+            cv2.line(screen, screen_pos, screen_point, (0, 0, 255), 1)
         return screen
 
