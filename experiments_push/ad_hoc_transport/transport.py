@@ -44,6 +44,22 @@ def adjusted_check_success(env):
 
     return reached_pos and reached_angle
 
+def check_subgoal_sucess(env):
+    self = env.world
+    reached_pos = (self.goal['pos'] - self.obj.obj_rigid_body.position).length < subgoal_tolerance['pos']
+
+    # Calculate the angle between the object and the goal
+    angle = self.obj.obj_rigid_body.angle % (2*np.pi)
+    if angle < 0.0: angle += 2*np.pi
+    angle_diff = self.goal['angle'] - angle
+    if angle_diff > np.pi:
+        angle_diff -= 2*np.pi
+    elif angle_diff < -np.pi:
+        angle_diff += 2*np.pi
+    reached_angle = abs(angle_diff) < subgoal_tolerance['angle']
+
+    return reached_pos and reached_angle
+
 def set_new_goal(self, new_goal={'pos':b2Vec2(0,0), 'angle': 0.0}):    
     self.world.goal = new_goal
     self.step_count = 0
@@ -58,10 +74,10 @@ def set_new_goal(self, new_goal={'pos':b2Vec2(0,0), 'angle': 0.0}):
     ]
     return self._gen_observation(), {}
 
-def _gen_subgoal_candidate(self):
+def _gen_subgoal_candidate(self, angle_range=(0, 2*np.pi)):
     # Gen subgoals in a range radius from the objects position
     rand_dist = random.uniform(min_subgoal_pos_dist, max_subgoal_pos_dist)
-    rand_rad = random.uniform(last_theta - max_theta_change, last_theta + max_theta_change)
+    rand_rad = random.uniform(angle_range[0], angle_range[1])
     subgoal_pos = [
         self.world.obj.obj_rigid_body.position.x + rand_dist * np.cos(rand_rad),
         self.world.obj.obj_rigid_body.position.y + rand_dist * np.sin(rand_rad)
@@ -75,11 +91,10 @@ def _gen_subgoal_candidate(self):
 
     return {'pos': subgoal_pos, 'angle': rand_angle}
 
-def _gen_rectangle_from_center_line(self, start_p, end_p):
+def _gen_rectangle_from_center_line(self, start_p, end_p, w):
     # Creates a rectangle from the center line (start_p, end_p)
-    # with width = corridor_width
+    # with width = w
     # Returns a list of 4 points in counter-clockwise order
-    w = corridor_width
     line_angle = np.arctan2(end_p[1] - start_p[1], end_p[0] - start_p[0])
     vec = w * np.array([np.cos(line_angle + np.pi/2), np.sin(line_angle + np.pi/2)])
     return [
@@ -107,10 +122,23 @@ def _calc_goal_dist(subgoal, final_goal):
     return pos_dist + angle_dist
 
 # Ad Hoc Navigation
+"""
+Subgoal selection high level:
+
+default subgoal => final_goal
+
+For range in (desired_range, complement):
+    Sample candidates on desired range.
+    For each corridor_width in descending order:
+        filtered_candidates = filter for corridor width
+        if len(filtered_candidates) > 0:
+            return the best according to ranking metric.
+return final_goal
+""" 
 def find_best_subgoal(env):
     global forbidden_polys, sg_candidates, is_valid_sg, chosen_sg, last_theta
     self = env
-    # Find the forbidden lines => likely to have obstacles
+    # Find the forbidden polygons => likely to have obstacles
     forbidden_polys = []
     range_l, _, point_l = self.world.get_laser_readings()
     agent_pos = self.world.obj.obj_rigid_body.position
@@ -151,44 +179,66 @@ def find_best_subgoal(env):
                 ])
             )
 
-    sg_candidates = [_gen_subgoal_candidate(self) for _ in range(100)]
-    # If goal is inside the range, return it as min_sg
-    if (final_goal['pos'] - agent_pos).length <= max_subgoal_pos_dist:
-        sg_candidates.append(
-            {'pos' : final_goal['pos'], 'angle': final_goal['angle']})
+    # Find the range of angles to sample
+    desired_range = (last_theta - max_theta_change, last_theta + max_theta_change)
+    complement_range = (desired_range[1], desired_range[0] + 2*np.pi)
+    range_l = [desired_range, complement_range]
 
-    # Check if valid:
-    min_dist = None
+    # Default subgoal
     min_sg = {'pos' : final_goal['pos'], 'angle': final_goal['angle']}
-    transform_matrix = b2Transform()
-    transform_matrix.SetIdentity()
-    is_valid_sg = []
-    for sg in sg_candidates:
-        # Create polygon on pos and angle, based on the object
-        transform_matrix.Set(sg['pos'], sg['angle'])
-        vertices = [(transform_matrix * v) for v in agent_vertices]
-        robot_body = Polygon(vertices)
-        # Union with the robot body
-        corridor = Polygon(
-            _gen_rectangle_from_center_line(self, (self.world.obj.obj_rigid_body.position.x, self.world.obj.obj_rigid_body.position.y), sg['pos']))
-        poly = corridor.union(robot_body)
-        # Check if the subgoal is in the forbidden lines
-        is_valid = True
-        for f_p in forbidden_polys:
-            if poly.intersects(f_p):
-                is_valid = False
+    for r in range_l:
+        found_valid_sg = False
+        sg_candidates = [_gen_subgoal_candidate(self, r) for _ in range(n_sampled_candidates)]
+        if (final_goal['pos'] - agent_pos).length <= max_subgoal_pos_dist:
+            sg_candidates.append(
+                {'pos' : final_goal['pos'], 'angle': final_goal['angle']})
+        for c_w in corridor_width_l:
+            min_dist = None
+            transform_matrix = b2Transform()
+            transform_matrix.SetIdentity()
+            is_valid_sg = []
+            for sg in sg_candidates:
+                # Create polygon on pos and angle, based on the object
+                # transform_matrix.Set(sg['pos'], sg['angle'])
+                # vertices = [(transform_matrix * v) for v in agent_vertices]
+                # robot_body = Polygon(vertices)
+                robot_body = Point(sg['pos'][0], sg['pos'][1]).buffer(10.0)
+                # Union with the robot body
+                corridor = Polygon(
+                    _gen_rectangle_from_center_line(self, (self.world.obj.obj_rigid_body.position.x, self.world.obj.obj_rigid_body.position.y), sg['pos'], c_w))
+                poly = corridor.union(robot_body)
+                # Check if the subgoal is in the forbidden lines
+                is_valid = True
+                for f_p in forbidden_polys:
+                    if poly.intersects(f_p):
+                        is_valid = False
+                        break
+                is_valid_sg.append(is_valid)
+                if is_valid:
+                    dist = _calc_goal_dist(sg, final_goal)
+                    if min_dist is None or dist < min_dist:
+                        min_dist = dist
+                        min_sg = sg
+            # If found a valid subgoal, break
+            if sum(is_valid_sg) > 0:
+                found_valid_sg = True
                 break
-        is_valid_sg.append(is_valid)
-        if is_valid:
-            dist = _calc_goal_dist(sg, final_goal)
-            if min_dist is None or dist < min_dist:
-                min_dist = dist
-                min_sg = sg
+        if found_valid_sg:
+            break
+
+    dir_x = min_sg['pos'][0] - self.world.obj.obj_rigid_body.position.x
+    dir_y = min_sg['pos'][1] - self.world.obj.obj_rigid_body.position.y
+    last_theta = math.atan2(dir_y, dir_x)
+    # Take a small step towards the subgoal
+    dir_vec = b2Vec2(dir_x, dir_y)
+    if dir_vec.length > subgoal_step_len:
+        dir_vec.Normalize()
+        dir_vec = dir_vec * subgoal_step_len
+
+    min_sg['pos'] = (dir_vec.x + self.world.obj.obj_rigid_body.position.x, dir_vec.y + self.world.obj.obj_rigid_body.position.y)
+
     chosen_sg = min_sg
 
-    dir_x = min_sg['pos'][0] - agent_pos.x
-    dir_y = min_sg['pos'][1] - agent_pos.y
-    last_theta = math.atan2(dir_y, dir_x)
     return min_sg
 
     # dir_x = min_sg['pos'][0] - agent_pos.x
@@ -235,7 +285,8 @@ def render():
     
     # Draw the chosen_sg corridor
     if chosen_sg is not None:
-        corridor = _gen_rectangle_from_center_line(self, (self.world.obj.obj_rigid_body.position.x, self.world.obj.obj_rigid_body.position.y), chosen_sg['pos'])
+        # corridor = _gen_rectangle_from_center_line(self, (self.world.obj.obj_rigid_body.position.x, self.world.obj.obj_rigid_body.position.y), chosen_sg['pos'], corridor_width)
+        corridor = _gen_rectangle_from_center_line(self, (self.start_obj_pos.x, self.start_obj_pos.y), chosen_sg['pos'], corridor_width)
         corridor = [self.world.worldToScreen(v) for v in corridor]
         # cv2.fillPoly(screen, [np.array(corridor)], (0, 255, 0))
         cv2.polylines(screen, [np.array(corridor)], isClosed=True, color=(0, 255, 0), thickness=4)
@@ -245,10 +296,22 @@ def render():
         final_goal['pos'], final_goal['angle'], self.world.pixels_per_meter, screen, (0, 255, 255), -1)
     self.world.drawArrow(screen, final_goal['pos'], final_goal['angle'], 10, (0, 255, 255))
 
-
+    frame_l.append(screen)
     scene_buffer.PushFrame(screen)
     scene_buffer.Draw()
-    cv2.waitKey(50)
+    cv2.waitKey(1)
+
+def save_video(frame_l):
+    global video_counter
+    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+    f_name = 'videos/video_' + str(video_counter) + '.mp4'
+    out = cv2.VideoWriter(f_name, fourcc, 30, (frame_l[0].shape[0], frame_l[0].shape[1]))
+    for frame in frame_l:
+        frame = (frame * 255).astype(np.uint8)
+        out.write(frame)
+    out.release()
+
+    video_counter += 1
 
 object_desc = {'name': 'Rectangle', 'height': 10.0, 'width': 5.0}
 print(object_desc)
@@ -292,36 +355,45 @@ env.cur_env._check_success = types.MethodType(adjusted_check_success, env.cur_en
 # Set parameters
 min_subgoal_pos_dist = 15.0
 max_subgoal_pos_dist = 15.0
+subgoal_step_len = 10.0
 corridor_width = 10.0
-max_subgoal_angle_dist = np.pi/4
-max_theta_change = np.pi/2
-update_subgoal_every = 1
+corridor_width_l = [10, 8, 6]
+max_subgoal_angle_dist = np.pi/8
+max_theta_change = np.pi/4
+update_subgoal_every = 10
+n_sampled_candidates = 100
+
+subgoal_tolerance = {'pos':3, 'angle':np.pi/4}
 
 agent_vertices = env.cur_env.world.obj.obj_rigid_body.fixtures[0].shape.vertices
 
 # Goal
-final_goal = {'pos':b2Vec2(80, 15), 'angle': 3*np.pi/2}
+final_goal = {'pos':b2Vec2(80, 20), 'angle': 3*np.pi/2}
 
 # Load agent
 model = SAC.load('model_ckp/progress_sac_rectangle_tolerance_pi18_pos_tol_2_reward_scale_10_corridor_full_death_width_10')
 
+# Rendering
 scene_buffer = CvDrawBuffer(window_name="Simulation", resolution=(1024,1024))
+frame_l = []
+video_counter = 0
 
 counter = 0
-
 render()
 obs, info = env.reset()
 acc_reward = 0
 success_l = []
 while True:
     # Find the direction, take a simple step towards.
+    # Check if subgoal has been reached
+    if check_subgoal_sucess(env.cur_env): counter = 0
     if sum(is_valid_sg) == 0: counter  = 0
     if counter % update_subgoal_every == 0:
         min_sg = find_best_subgoal(env.cur_env)
+        set_new_goal(env.cur_env, new_goal={'pos':b2Vec2(min_sg['pos']), 'angle': min_sg['angle']})
         counter = 0
     counter += 1
     
-    set_new_goal(env.cur_env, new_goal={'pos':b2Vec2(min_sg['pos']), 'angle': min_sg['angle']})
     obs = adjust_obs(obs)
     action, _states = model.predict(obs, deterministic=True)
     obs, reward, terminated, truncated, info = env.step(action)
@@ -329,7 +401,14 @@ while True:
     render()
     if terminated or truncated:
         success_l.append(info['is_success'])
+        # Save video
+        if not info['is_success']:
+            save_video(frame_l)
+        frame_l = []
+
         obs, info = env.reset()
+
+        counter = 0
 
         env.cur_env._check_death = types.MethodType(adjusted_check_death, env.cur_env)
         env.cur_env._check_success = types.MethodType(adjusted_check_success, env.cur_env)

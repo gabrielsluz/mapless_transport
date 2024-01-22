@@ -279,7 +279,9 @@ class TransportationWorld:
         #     1.2*(self.obj.obj_radius + 2*self.agent.agent_radius))
         # Alterar
         self.obj.obj_rigid_body.position = b2Vec2(15, 75)
-        self.obj.obj_rigid_body.angle = random.uniform(0, 2*np.pi)
+        # self.obj.obj_rigid_body.position = b2Vec2(81, 35)
+        # self.obj.obj_rigid_body.angle = random.uniform(0, 2*np.pi)
+        self.obj.obj_rigid_body.angle = np.pi/2
 
         x_lim = [
             self.obj.obj_rigid_body.position.x - self.max_obj_dist*0.7071,
