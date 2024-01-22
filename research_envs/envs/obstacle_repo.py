@@ -394,7 +394,7 @@ obstacle_l_dict = {
     ],
 
 
-    # Large pushing maps: 
+    # Large pushing maps: 100x100
     'parallel_walls': [
         # Frame
         {'name':'Rectangle', 'pos':(50.0, 0.0), 'height':5.0, 'width':100.0},
@@ -404,6 +404,32 @@ obstacle_l_dict = {
         # Inside walls
         {'name':'Rectangle', 'pos':(30.0, 75.0), 'height':75.0, 'width':5.0},
         {'name':'Rectangle', 'pos':(60.0, 25.0), 'height':75.0, 'width':5.0},
+    ],
+    'big_U': [
+        # Frame
+        {'name':'Rectangle', 'pos':(50.0, 0.0), 'height':5.0, 'width':100.0},
+        {'name':'Rectangle', 'pos':(50.0, 100.0), 'height':5.0, 'width':100.0},
+        {'name':'Rectangle', 'pos':(0.0, 50.0), 'height':100.0, 'width':5.0},
+        {'name':'Rectangle', 'pos':(100.0, 50.0), 'height':100.0, 'width':5.0},
+        # Inside walls
+        {'name':'Rectangle', 'pos':(33.0, 50.0), 'height':50.0, 'width':3.0},
+        {'name':'Rectangle', 'pos':(66.0, 50.0), 'height':50.0, 'width':3.0},
+        {'name':'Rectangle', 'pos':(49.5, 75.0), 'height':3.0, 'width':33.0},
+        
+    ],
+    'big_sparse_2':[
+        # Frame
+        {'name':'Rectangle', 'pos':(50.0, 0.0), 'height':1.0, 'width':100.0},
+        {'name':'Rectangle', 'pos':(50.0, 100.0), 'height':1.0, 'width':100.0},
+        {'name':'Rectangle', 'pos':(0.0, 50.0), 'height':100.0, 'width':1.0},
+        {'name':'Rectangle', 'pos':(100.0, 50.0), 'height':100.0, 'width':1.0},
+
+        {'name':'Circle', 'pos':(50.0, 50.0), 'radius':12.0},
+        {'name':'Rectangle', 'pos':(80.0, 10.0), 'height':12.0, 'width':12.0},
+        {'name':'Circle', 'pos':(50.0, 10.0), 'radius':5.0},
+        {'name':'Rectangle', 'pos':(10.0, 40.0), 'height':25.0, 'width':4.0},
+        {'name': 'Polygon', 'pos':(28, 86.0), 'vertices': [(5,45), (14,40), (22,47)]},
+        {'name': 'Polygon', 'pos':(80, 80.0), 'vertices': [(31, 46.0), (43,28), (47.5,46.3)]},
     ],
 
 }
