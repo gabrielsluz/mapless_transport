@@ -18,6 +18,7 @@ import random
 import math
 import numpy as np
 import types
+from collections import deque
 
 
 """
@@ -126,6 +127,41 @@ def set_new_goal(self, new_goal={'pos':b2Vec2(0,0), 'angle': 0.0}):
     ]
     return self._gen_observation(), {}
 
+# Trajectory keeping
+class TrajectoryMemory:
+    """
+    Class to keep track of the current trajectory.
+    Useful for computing the information gain.
+    """
+    def __init__(self, min_step_len=0.1, max_step_len=0.5, max_len=10):
+        self.max_step_len = max_step_len
+        self.min_step_len = min_step_len
+        self.trajectory = deque(maxlen=max_len)
+
+    def add(self, pos):
+        # pos => np.array([x, y])
+        if len(self.trajectory) == 0:
+            self.trajectory.append(pos)
+        else:
+            last_pos = self.trajectory[-1]
+            if np.linalg.norm(pos - last_pos) < self.min_step_len:
+                return
+            # Interpolate between last_pos and pos, add each point
+            n_steps = int(np.linalg.norm(pos - last_pos) / self.max_step_len)
+            for i in range(n_steps):
+                self.trajectory.append(
+                    last_pos + (pos - last_pos) * (i / n_steps))
+            
+            last_pos = self.trajectory[-1]
+            if np.linalg.norm(pos - last_pos) >= self.min_step_len:
+                self.trajectory.append(pos)
+
+    def get_trajectory_arr(self):
+        return np.array(self.trajectory)
+    
+    def clear(self):
+        self.trajectory.clear()
+
 # Ad hoc navigation functions
 def _gen_subgoal_candidate(env, dist_range=(0.0, 10.0), angle_range=(0, 2*np.pi)):
     # Gen subgoals in a range radius from the objects position
@@ -190,11 +226,24 @@ def find_best_subgoal():
     ])
 
     d_min = d_score_arr.min()
-    d_max = d_score_arr.max()
+    d_max = d_score_arr.max() + 1e-6
     d_score_arr = (d_score_arr - d_min) / (d_max - d_min)
     d_score_arr = 1.0 - d_score_arr
 
-    score_arr = 2.0*viability_score_arr + d_score_arr
+    trajectory_arr = trajectory_memory.get_trajectory_arr()
+
+    i_score_arr = np.zeros(len(sg_candidate_l))
+    if len(trajectory_arr) > 0:
+        # Compute distance to each point in the trajectory
+        for i in range(len(sg_candidate_l)):
+            dist_arr = np.linalg.norm(sg_candidate_l[i] - trajectory_arr, axis=1)
+            i_score_arr[i] = sum(dist_arr <= trajectory_close_enough)
+        i_min = i_score_arr.min()
+        i_max = i_score_arr.max() + 1e-6
+        i_score_arr = (i_score_arr - i_min) / (i_max - i_min)
+        i_score_arr = 1.0 - i_score_arr
+
+    score_arr = 2.0*viability_score_arr + 0.75*d_score_arr + 0.25*i_score_arr
     best_sg_idx = np.argmax(score_arr)
 
     is_valid = sg_corridor_width_l[best_sg_idx] >= corridor_width 
@@ -223,9 +272,6 @@ def compute_best_angle():
             return cur_angle - max_angle_diff
 
 
-
-
-
 def reset_macro_env():
     # Run after env.reset()
     global final_goal, macro_env_steps, micro_env_steps, sg_is_valid
@@ -233,6 +279,7 @@ def reset_macro_env():
     macro_env_steps = 0
     micro_env_steps = 0
     sg_is_valid = False
+    trajectory_memory.clear()
 
 def adjust_obs(obs):
     return obs[72:]
@@ -277,14 +324,18 @@ macro_env_steps = 0
 final_goal = None
 
 candidate_dist_range = (5.0, 15.0)
-n_candidates = 100
+n_candidates = 200
 
 max_angle_diff = np.pi/6
-subgoal_tolerance = {'pos':3, 'angle':np.pi/4}
-micro_env_max_steps = 10
+subgoal_tolerance = {'pos':2, 'angle':np.pi/4}
+micro_env_max_steps = 20
 micro_env_steps = 0
 sg_is_valid = False
 min_sg = None
+
+# Information gain
+trajectory_memory = TrajectoryMemory(min_step_len=2.0, max_step_len=2.0, max_len=100)
+trajectory_close_enough = 10.0
 
 sg_candidate_l = []
 sg_score_l = []
@@ -295,7 +346,7 @@ print(object_desc)
 
 config = TransportationEnvConfig(
     world_config= TransportationWorldConfig(
-        obstacle_l = obstacle_l_dict['big_sparse_2'],
+        obstacle_l = obstacle_l_dict['big_U'],
         object_l=[
             object_desc
             ],
@@ -337,6 +388,10 @@ while True:
     if check_subgoal_sucess(env): micro_env_steps = 0
     if not sg_is_valid: micro_env_steps  = 0
     if micro_env_steps % micro_env_max_steps == 0:
+        obj_pos = np.array(
+            [env.world.obj.obj_rigid_body.position.x, env.world.obj.obj_rigid_body.position.y]
+        )
+        trajectory_memory.add(obj_pos)
         min_sg, sg_is_valid = find_best_subgoal()
         set_new_goal(env, new_goal={'pos':b2Vec2(min_sg), 'angle': compute_best_angle()})
         micro_env_steps = 0

@@ -30,11 +30,11 @@ config = TransportationEnvConfig(
     ),
     max_steps = 500,
     previous_obs_queue_len = 0,
-    reward_scale=10.0,
+    reward_scale=5.0,
     max_corr_width=10.0
 )
 
-exp_name = 'progress_sac_rectangle_tolerance_pi18_pos_tol_2_reward_scale_10_capsule_width_10'
+exp_name = 'progress_sac_rectangle_tolerance_pi18_pos_tol_2_reward_scale_5_capsule_width_10'
 
 obs_l_dict = {
     k: obstacle_l_dict[k] 
