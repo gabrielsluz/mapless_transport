@@ -341,7 +341,8 @@ config = TransportationEnvConfig(
 obs_l_dict = {
     k: obstacle_l_dict[k] 
     for k in [
-        'parallel_walls'
+        'big_sparse_2'
+        #'parallel_walls'
         # 'empty', 'frame', 'horizontal_corridor', 'vertical_corridor', '4_circles_wide',
         # '1_circle', '1_rectangle', '1_triangle',
         # 'circle_line', 'small_4_circles',
@@ -368,7 +369,9 @@ subgoal_tolerance = {'pos':3, 'angle':np.pi/4}
 agent_vertices = env.cur_env.world.obj.obj_rigid_body.fixtures[0].shape.vertices
 
 # Goal
-final_goal = {'pos':b2Vec2(80, 20), 'angle': 3*np.pi/2}
+# final_goal = {'pos':b2Vec2(80, 20), 'angle': 3*np.pi/2}
+# final_goal = {'pos':b2Vec2(0, 0), 'angle': 3*np.pi/2}
+final_goal = {'pos':b2Vec2(env.cur_env.world.goal['pos']), 'angle': env.cur_env.world.goal['angle']}
 
 # Load agent
 model = SAC.load('model_ckp/progress_sac_rectangle_tolerance_pi18_pos_tol_2_reward_scale_10_corridor_full_death_width_10')
@@ -402,14 +405,15 @@ while True:
     if terminated or truncated:
         success_l.append(info['is_success'])
         # Save video
-        # if not info['is_success']:
-        #     save_video(frame_l)
-        save_video(frame_l)
+        if not info['is_success']:
+            save_video(frame_l)
+        # save_video(frame_l)
         frame_l = []
-
-        final_goal['angle'] = random.uniform(0, 2*np.pi)
-
         obs, info = env.reset()
+        
+        #final_goal['angle'] = random.uniform(0, 2*np.pi)
+        final_goal = {'pos':b2Vec2(env.cur_env.world.goal['pos']), 'angle': env.cur_env.world.goal['angle']}
+
 
         counter = 0
 
