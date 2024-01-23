@@ -279,11 +279,6 @@ class TransportationWorld:
             1.2*(self.obj.obj_radius + 2*self.agent.agent_radius))
         self.obj.obj_rigid_body.angle = random.uniform(0, 2*np.pi)
 
-        # Alterar
-        # self.obj.obj_rigid_body.position = b2Vec2(15, 75)
-        # self.obj.obj_rigid_body.position = b2Vec2(81, 35)
-        # self.obj.obj_rigid_body.angle = np.pi/2
-
         x_lim = [
             self.obj.obj_rigid_body.position.x - self.max_obj_dist*0.7071,
             self.obj.obj_rigid_body.position.x + self.max_obj_dist*0.7071
@@ -295,8 +290,7 @@ class TransportationWorld:
         self.agent.agent_rigid_body.position = self.gen_non_overlapping_position_in_limit(
             self.agent.agent_radius*1.2, x_lim, y_lim)
 
-        # sampled_pos = self.gen_non_overlapping_position(self.goal_tolerance['pos']+self.obj.obj_radius)
-        sampled_pos = self.gen_non_overlapping_position(10.0)
+        sampled_pos = self.gen_non_overlapping_position(self.goal_tolerance['pos']+self.obj.obj_radius)
         self.goal['pos'].x = sampled_pos[0]
         self.goal['pos'].y = sampled_pos[1]
         self.goal['angle'] = random.uniform(0, 2*np.pi)
