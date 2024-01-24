@@ -213,7 +213,7 @@ def find_best_subgoal():
         for i in range(len(sg_candidate_l))
     ]
     viability_score_arr = np.array([
-        1.0 
+        min(max_corridor_width, sg_corridor_width_l[i]) / corridor_width
         if sg_corridor_width_l[i] >= corridor_width 
         else 0.5*(sg_corridor_width_l[i]/corridor_width)
         for i in range(len(sg_candidate_l))
@@ -231,19 +231,20 @@ def find_best_subgoal():
     d_score_arr = 1.0 - d_score_arr
 
     trajectory_arr = trajectory_memory.get_trajectory_arr()
-
     i_score_arr = np.zeros(len(sg_candidate_l))
-    if len(trajectory_arr) > 0:
+    if ((final_goal['pos'] - agent_pos).length > min_dist_to_final_goal_for_info_gain) and (len(trajectory_arr) > 0):
         # Compute distance to each point in the trajectory
         for i in range(len(sg_candidate_l)):
             dist_arr = np.linalg.norm(sg_candidate_l[i] - trajectory_arr, axis=1)
             i_score_arr[i] = sum(dist_arr <= trajectory_close_enough)
+        i_score_arr = np.log(1 + i_score_arr)
         i_min = i_score_arr.min()
         i_max = i_score_arr.max() + 1e-6
         i_score_arr = (i_score_arr - i_min) / (i_max - i_min)
         i_score_arr = 1.0 - i_score_arr
 
-    score_arr = 2.0*viability_score_arr + 0.75*d_score_arr + 0.25*i_score_arr
+    # score_arr = 2.0*viability_score_arr + 0.25*d_score_arr + 0.75*i_score_arr
+    score_arr = 2.0*viability_score_arr + 0.9*i_score_arr + 0.1*d_score_arr
     best_sg_idx = np.argmax(score_arr)
 
     is_valid = sg_corridor_width_l[best_sg_idx] >= corridor_width 
@@ -296,11 +297,14 @@ def render():
             cv2.circle(screen, sg, 5, (255, 0, 0), -1)
         else:
             cv2.circle(screen, sg, 5, (0, 255, 0), -1)
-    
-    # Draw best subgoal in red
-    if min_sg is not None:
-        screen_pos = self.world.worldToScreen(min_sg)
-        cv2.circle(screen, screen_pos, 10, (0, 0, 255), -1)
+
+    # Draw trajectory as little red arrows
+    trajectory_arr = trajectory_memory.get_trajectory_arr()
+    for i in range(len(trajectory_arr)):
+        if i == 0: continue
+        start = self.world.worldToScreen(trajectory_arr[i-1])
+        end = self.world.worldToScreen(trajectory_arr[i])
+        screen = cv2.arrowedLine(screen, start, end, color=(0, 0, 255), thickness=6)
 
     # Draw final goal in yellow
     if final_goal is not None:
@@ -310,16 +314,16 @@ def render():
 
     scene_buffer.PushFrame(screen)
     scene_buffer.Draw()
-    cv2.waitKey(25)
+    cv2.waitKey(50)
 
 
 # MAIN
 # Parameters
 corridor_width = 10.0
-max_corridor_width = 10.0
-obj_goal_init_slack = 10.0
+max_corridor_width = corridor_width
+obj_goal_init_slack = corridor_width * 1.1
 
-macro_env_max_steps = 500
+macro_env_max_steps = 1000
 macro_env_steps = 0
 final_goal = None
 
@@ -328,7 +332,7 @@ n_candidates = 200
 
 max_angle_diff = np.pi/6
 subgoal_tolerance = {'pos':2, 'angle':np.pi/4}
-micro_env_max_steps = 20
+micro_env_max_steps = 30
 micro_env_steps = 0
 sg_is_valid = False
 min_sg = None
@@ -336,6 +340,7 @@ min_sg = None
 # Information gain
 trajectory_memory = TrajectoryMemory(min_step_len=2.0, max_step_len=2.0, max_len=100)
 trajectory_close_enough = 10.0
+min_dist_to_final_goal_for_info_gain = 10.0
 
 sg_candidate_l = []
 sg_score_l = []
@@ -346,7 +351,7 @@ print(object_desc)
 
 config = TransportationEnvConfig(
     world_config= TransportationWorldConfig(
-        obstacle_l = obstacle_l_dict['big_U'],
+        obstacle_l = obstacle_l_dict['big_sparse_2'],
         object_l=[
             object_desc
             ],
