@@ -173,18 +173,72 @@ def _gen_subgoal_candidate(env, dist_range=(0.0, 10.0), angle_range=(0, 2*np.pi)
     ]
     return subgoal_pos
 
-def compute_corridor_width(subgoal_pos, obstacle_point_l):
-    if len(obstacle_point_l) == 0: return max_corridor_width
+# def compute_corridor_width(subgoal_pos, obstacle_point_l):
+#     # Checks the laser rays in the direction of the subgoal plus angle
+#     if len(obstacle_point_l) == 0: return max_corridor_width
+
+#     # Finds the laser ray closest to the subgoal => lasers go in [-pi, pi]
+#     subgoal_angle = math.atan2( # returned value is between PI and -PI.
+#         subgoal_pos[1] - env.world.obj.obj_rigid_body.position.y, 
+#         subgoal_pos[0] - env.world.obj.obj_rigid_body.position.x)
+#     closest_idx = round((subgoal_angle + np.pi) / laser_angle_inc)
+
+#     n_rays = len(obstacle_point_l)
+#     ids_to_check = [(closest_idx + i) % n_rays for i in range(1, laser_rays_to_check+1)]
+#     ids_to_check += [(closest_idx - i) % n_rays for i in range(1, laser_rays_to_check+1)]
+
+#     # LineString from obj to subgoal
+#     corridor_center = LineString([
+#         (env.world.obj.obj_rigid_body.position.x, env.world.obj.obj_rigid_body.position.y),
+#         (subgoal_pos[0], subgoal_pos[1])
+#     ])
+
+#     min_d = None
+#     for i in ids_to_check:
+#         p = obstacle_point_l[i]
+#         if p is None: continue
+#         d = corridor_center.distance(Point(p.x, p.y))
+#         if min_d is None or d < min_d:
+#             min_d = d
+#     if min_d is None: return max_corridor_width
+#     return min_d
+
+def angle_dist(a, b):
+    a = a % (2*np.pi)
+    if a < 0.0: a += 2*np.pi
+    b = b % (2*np.pi)
+    if b < 0.0: b += 2*np.pi
+    angle_diff = b - a
+    if angle_diff > np.pi:
+        angle_diff -= 2*np.pi
+    elif angle_diff < -np.pi:
+        angle_diff += 2*np.pi
+    return angle_diff
+
+def compute_corridor_width(subgoal_pos, obstacle_point_arr, ang_arr, laser_angle_range):
+    # Checks the laser rays in the direction of the subgoal plus angle
+    if len(obstacle_point_arr) == 0: return max_corridor_width
+
+    obj_pos = np.array([
+        env.world.obj.obj_rigid_body.position.x, env.world.obj.obj_rigid_body.position.y
+    ])
+    sg_angle = math.atan2( # returned value is between PI and -PI.
+        subgoal_pos[1] - obj_pos[1], 
+        subgoal_pos[0] - obj_pos[0])
+    
     # LineString from obj to subgoal
     corridor_center = LineString([
-        (env.world.obj.obj_rigid_body.position.x, env.world.obj.obj_rigid_body.position.y),
+        (obj_pos[0], obj_pos[1]),
         (subgoal_pos[0], subgoal_pos[1])
     ])
+
     min_d = None
-    for p in obstacle_point_l:
-        d = corridor_center.distance(Point(p.x, p.y))
-        if min_d is None or d < min_d:
-            min_d = d
+    for i in range(obstacle_point_arr.shape[0]):
+        if abs(angle_dist(sg_angle, ang_arr[i])) <= laser_angle_range:
+            d = corridor_center.distance(Point(obstacle_point_arr[i, 0], obstacle_point_arr[i, 1]))
+            if min_d is None or d < min_d:
+                min_d = d
+    if min_d is None: return max_corridor_width
     return min_d
 
 def find_best_subgoal():
@@ -203,13 +257,19 @@ def find_best_subgoal():
     # Obstacle detection
     _, type_l, point_l = env.world.get_laser_readings()
     # Get the points with obstacles
-    obstacle_point_l = [
-        Point(point_l[i].x, point_l[i].y)
-        for i in range(len(point_l)) 
-        if type_l[i] == LaserHit.OBSTACLE]
+    obstacle_point_arr = np.array([
+        (point_l[i].x, point_l[i].y)
+        for i in range(len(point_l))
+        if type_l[i] == LaserHit.OBSTACLE
+    ])
+    # In obj centered coordinates
+    centered_obstacle_point_arr = obstacle_point_arr - np.array([
+        env.world.obj.obj_rigid_body.position.x, env.world.obj.obj_rigid_body.position.y])
+    ang_arr = np.arctan2(centered_obstacle_point_arr[:, 1], centered_obstacle_point_arr[:, 0])
+
     # Compute corridor width for each subgoal
     sg_corridor_width_l = [
-        compute_corridor_width(sg_candidate_l[i], obstacle_point_l)
+        compute_corridor_width(sg_candidate_l[i], obstacle_point_arr, ang_arr, laser_angle_range)
         for i in range(len(sg_candidate_l))
     ]
     viability_score_arr = np.array([
@@ -285,6 +345,19 @@ def reset_macro_env():
 def adjust_obs(obs):
     return obs[72:]
 
+def _gen_rectangle_from_center_line(self, start_p, end_p, w):
+    # Creates a rectangle from the center line (start_p, end_p)
+    # with width = w
+    # Returns a list of 4 points in counter-clockwise order
+    line_angle = np.arctan2(end_p[1] - start_p[1], end_p[0] - start_p[0])
+    vec = w * np.array([np.cos(line_angle + np.pi/2), np.sin(line_angle + np.pi/2)])
+    return [
+        (start_p[0] + vec[0], start_p[1] + vec[1]),
+        (start_p[0] - vec[0], start_p[1] - vec[1]),
+        (end_p[0] - vec[0], end_p[1] - vec[1]),
+        (end_p[0] + vec[0], end_p[1] + vec[1])
+    ]
+
 def render():
     self = env
     screen = env.render()
@@ -312,9 +385,30 @@ def render():
             final_goal['pos'], final_goal['angle'], self.world.pixels_per_meter, screen, (0, 255, 255), -1)
         self.world.drawArrow(screen, final_goal['pos'], final_goal['angle'], 10, (0, 255, 255))
 
+    # Draw corridor
+    if min_sg is not None:
+        # corridor = _gen_rectangle_from_center_line(self, (self.world.obj.obj_rigid_body.position.x, self.world.obj.obj_rigid_body.position.y), chosen_sg['pos'], corridor_width)
+        corridor = _gen_rectangle_from_center_line(self, (self.start_obj_pos.x, self.start_obj_pos.y), min_sg, corridor_width)
+        corridor = [self.world.worldToScreen(v) for v in corridor]
+        cv2.polylines(screen, [np.array(corridor)], isClosed=True, color=(0, 255, 0), thickness=4)
+        sg_radius = int(corridor_width * self.world.pixels_per_meter)
+        cv2.circle(screen, self.world.worldToScreen(min_sg), sg_radius, (0, 255, 0), thickness=4)
+
+    frame_l.append(screen)
     scene_buffer.PushFrame(screen)
     scene_buffer.Draw()
     cv2.waitKey(50)
+
+def save_video(frame_l):
+    global video_counter
+    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+    f_name = 'videos/video_' + str(video_counter) + '.mp4'
+    out = cv2.VideoWriter(f_name, fourcc, 20, (frame_l[0].shape[1], frame_l[0].shape[0]))
+    for frame in frame_l:
+        frame = frame.astype(np.uint8)
+        out.write(frame)
+    out.release()
+    video_counter += 1
 
 
 # MAIN
@@ -322,12 +416,14 @@ def render():
 corridor_width = 10.0
 max_corridor_width = corridor_width
 obj_goal_init_slack = corridor_width * 1.1
+# Only evaluates laser rays in the direction of the candidate plus/minus this angle
+laser_angle_range = np.pi/2
 
 macro_env_max_steps = 1000
 macro_env_steps = 0
 final_goal = None
 
-candidate_dist_range = (5.0, 15.0)
+candidate_dist_range = (5.0, 10.0)
 n_candidates = 200
 
 max_angle_diff = np.pi/6
@@ -351,7 +447,7 @@ print(object_desc)
 
 config = TransportationEnvConfig(
     world_config= TransportationWorldConfig(
-        obstacle_l = obstacle_l_dict['big_sparse_2'],
+        obstacle_l = obstacle_l_dict['big_U'],
         object_l=[
             object_desc
             ],
@@ -382,6 +478,8 @@ model = SAC.load('model_ckp/progress_sac_rectangle_tolerance_pi18_pos_tol_2_rewa
 
 # Rendering
 scene_buffer = CvDrawBuffer(window_name="Simulation", resolution=(1024,1024))
+frame_l = []
+video_counter = 0
 
 render()
 obs, info = env.reset()
@@ -415,6 +513,12 @@ while True:
 
     if terminated or truncated:
         success_l.append(info['is_success'])
+        # Save video
+        if not info['is_success']:
+            save_video(frame_l)
+        # save_video(frame_l)
+        frame_l = []
+
         obs, info = env.reset()
         reset_macro_env()
 
