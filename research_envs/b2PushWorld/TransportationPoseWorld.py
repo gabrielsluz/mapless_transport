@@ -224,7 +224,6 @@ class TransportationWorld:
     def distToOrientation(self):
         # Calculate the angle between the object and the goal
         obj_angle = self.obj.obj_rigid_body.angle % (2*np.pi)
-        if obj_angle < 0.0: obj_angle += 2*np.pi
         angle_diff = self.goal['angle'] - obj_angle
         if angle_diff > np.pi:
             angle_diff -= 2*np.pi

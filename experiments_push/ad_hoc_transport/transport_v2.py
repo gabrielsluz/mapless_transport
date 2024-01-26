@@ -345,7 +345,7 @@ def reset_macro_env():
 def adjust_obs(obs):
     return obs[72:]
 
-def _gen_rectangle_from_center_line(self, start_p, end_p, w):
+def _gen_rectangle_from_center_line(start_p, end_p, w):
     # Creates a rectangle from the center line (start_p, end_p)
     # with width = w
     # Returns a list of 4 points in counter-clockwise order
@@ -387,8 +387,7 @@ def render():
 
     # Draw corridor
     if min_sg is not None:
-        # corridor = _gen_rectangle_from_center_line(self, (self.world.obj.obj_rigid_body.position.x, self.world.obj.obj_rigid_body.position.y), chosen_sg['pos'], corridor_width)
-        corridor = _gen_rectangle_from_center_line(self, (self.start_obj_pos.x, self.start_obj_pos.y), min_sg, corridor_width)
+        corridor = _gen_rectangle_from_center_line((self.start_obj_pos.x, self.start_obj_pos.y), min_sg, corridor_width)
         corridor = [self.world.worldToScreen(v) for v in corridor]
         cv2.polylines(screen, [np.array(corridor)], isClosed=True, color=(0, 255, 0), thickness=4)
         sg_radius = int(corridor_width * self.world.pixels_per_meter)
