@@ -193,6 +193,18 @@ class TransportationEnv(gym.Env):
             Point(self.world.agent.agent_rigid_body.position.x,
                   self.world.agent.agent_rigid_body.position.y))
         return d + self.world.agent.agent_radius
+    
+    def _object_to_corridor_dist(self):
+        # For each vertex in the object compute the distance, return the max
+        max_d = None
+        body = self.world.obj.obj_rigid_body
+        for f_i in range(len(body.fixtures)):
+            vertices = [(body.transform * v) for v in body.fixtures[f_i].shape.vertices]
+            for v in vertices:
+                d = self.capsule_line.distance(Point(v.x, v.y))
+                if max_d is None or d > max_d:
+                    max_d = d
+        return max_d
 
     def _calc_reward(self):
         time_penalty = -0.01
@@ -205,21 +217,29 @@ class TransportationEnv(gym.Env):
         progress_reward = (self.last_dist - cur_dist)
         progress_reward = progress_reward / (self.max_goal_dist/2)
         # Corridor penalty
-        # d = self._agent_to_corridor_dist()
-        # if d >= self.reference_corridor_width:
-        #     agent_corr_penalty = -0.5
-        # else:
-        #     agent_corr_penalty = 0.02 * (-d / self.reference_corridor_width)
-        agent_corr_penalty = 0.0
+        d = self._agent_to_corridor_dist()
+        if d >= self.reference_corridor_width:
+            # agent_corr_penalty = -0.1
+            agent_corr_penalty = -0.02
+        else:
+            agent_corr_penalty = 0.01 * (-d / self.reference_corridor_width)
+            # agent_corr_penalty = 0.0
+        # Corridor penalty
+        d = self._object_to_corridor_dist()
+        if d >= self.reference_corridor_width:
+            # obj_corr_penalty = -0.1
+            obj_corr_penalty = -0.02
+        else:
+            obj_corr_penalty = 0.01 * (-d / self.reference_corridor_width)
+            # obj_corr_penalty = 0.0
         # Stay close to object
         d = self.world.agent_to_object_vector().length
         if d >= self.reference_corridor_width:
-            #agent_obj_penalty = -0.5
             agent_obj_penalty = -0.1
         else:
             agent_obj_penalty = 0.0
 
-        return progress_reward + agent_corr_penalty + agent_obj_penalty + time_penalty
+        return progress_reward + agent_corr_penalty + obj_corr_penalty + agent_obj_penalty + time_penalty
 
     # def _calc_reward(self):
     #     # Reward based on the progress of the agent towards the goal

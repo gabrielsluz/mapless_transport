@@ -88,7 +88,7 @@ obs_l_dict = {
 }
 env = TransportationMixEnv(config, obs_l_dict)
 
-model = SAC.load('model_ckp/capsule_reward_pos_control')
+model = SAC.load('model_ckp/capsule_reward_pos_control_capsule')
 print(model.policy)
 
 scene_buffer = CvDrawBuffer(window_name="Simulation", resolution=(1024,1024))
