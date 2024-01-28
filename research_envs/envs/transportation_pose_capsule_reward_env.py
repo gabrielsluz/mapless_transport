@@ -67,7 +67,7 @@ class TransportationEnv(gym.Env):
         #     n_rays + 6 + self.prev_act_len,
         # )
         self.observation_shape = (
-            7,
+            8,
         )
         self.observation_space = spaces.Box(
             low=-np.inf, high=np.inf, shape=self.observation_shape, dtype=np.float32)
@@ -135,7 +135,8 @@ class TransportationEnv(gym.Env):
         # Calc angle between agent_to_goal and x-axis
         angle = np.arctan2(agent_to_goal[1], agent_to_goal[0])
         goal_obs = np.array([
-            angle/np.pi, min(agent_to_goal.length/self.max_goal_dist, 1.0)
+            angle/np.pi, min(agent_to_goal.length/self.max_goal_dist, 1.0),
+            self.world.goal['angle']/(2*math.pi)
             ])
 
         # angle, dist, object angle
@@ -182,9 +183,6 @@ class TransportationEnv(gym.Env):
     def _check_success(self):
         return self.world.did_object_reach_goal()
 
-    # def _check_success(self):
-    #     return (self.world.goal['pos'] - self.world.agent.agent_rigid_body.position).length < 1.0
-
     def _check_death(self):
         return self.world.did_agent_collide() or self.world.did_object_collide()
     
@@ -210,28 +208,31 @@ class TransportationEnv(gym.Env):
         time_penalty = -0.01
         # Success
         if self._check_success():
-            return 0.5
+            return 5.0 #0.5
         # Progress 
         # On average the final progress reward is 1.0 when successful
         cur_dist = self.world.object_to_goal_vector().length
         progress_reward = (self.last_dist - cur_dist)
         progress_reward = progress_reward / (self.max_goal_dist/2)
+
+        orient_reward = abs(self.last_orient_error) - abs(self.world.distToOrientation()/np.pi)
+
         # Corridor penalty
         d = self._agent_to_corridor_dist()
         if d >= self.reference_corridor_width:
             # agent_corr_penalty = -0.1
-            agent_corr_penalty = -0.02
+            agent_corr_penalty = 0.0#-0.02
         else:
-            agent_corr_penalty = 0.01 * (-d / self.reference_corridor_width)
-            # agent_corr_penalty = 0.0
+            # agent_corr_penalty = 0.01 * (-d / self.reference_corridor_width)
+            agent_corr_penalty = 0.0
         # Corridor penalty
         d = self._object_to_corridor_dist()
         if d >= self.reference_corridor_width:
             # obj_corr_penalty = -0.1
-            obj_corr_penalty = -0.02
+            obj_corr_penalty = 0.0#-0.02
         else:
-            obj_corr_penalty = 0.01 * (-d / self.reference_corridor_width)
-            # obj_corr_penalty = 0.0
+            # obj_corr_penalty = 0.01 * (-d / self.reference_corridor_width)
+            obj_corr_penalty = 0.0
         # Stay close to object
         d = self.world.agent_to_object_vector().length
         if d >= self.reference_corridor_width:
@@ -239,53 +240,28 @@ class TransportationEnv(gym.Env):
         else:
             agent_obj_penalty = 0.0
 
-        return progress_reward + agent_corr_penalty + obj_corr_penalty + agent_obj_penalty + time_penalty
+        # return 0.5*(progress_reward + orient_reward) + agent_corr_penalty + obj_corr_penalty + agent_obj_penalty + time_penalty
+        return progress_reward + orient_reward + agent_obj_penalty + time_penalty
 
-    # def _calc_reward(self):
-    #     # Reward based on the progress of the agent towards the goal
-    #     progress_reward = 0.0
-    #     success_reward = 0.5
-    #     death_penalty = -1.0
-    #     time_penalty = -0.01
+    def _calc_reward(self):
+        """
+        Reward is based on decreasing variables. => it is the negative of the variable at each step.
+        """
+        time_penalty = -0.01
+        # Success
+        if self._check_success():
+            return 5.0 #0.5
+        # Progress 
+        # On average the final progress reward is 1.0 when successful
+        cur_dist = self.world.object_to_goal_vector().length
+        progress_reward = (self.last_dist - cur_dist)
+        progress_reward = progress_reward / (self.max_goal_dist/2)
 
-    #     # Success
-    #     if self._check_success():
-    #         return success_reward
-    #     # Death
-    #     if self._check_death():
-    #         return death_penalty
-    #     # Progress 
-    #     # On average the final progress reward is 1.0 when successful
-    #     cur_dist = self.world.object_to_goal_vector().length
-    #     progress_reward = (self.last_dist - cur_dist)
-    #     progress_reward = progress_reward / (self.max_goal_dist/2)
+        # Stay close to object
+        d = self.world.agent_to_object_vector().length / self.reference_corridor_width
+        agent_obj_penalty = 0.01 * -d
 
-    #     orient_reward = abs(self.last_orient_error) - abs(self.world.distToOrientation()/np.pi)
-
-    #     # # Agent to object distance: Agent should stay close to the object
-    #     # # Attempt to scale it to sum to -1 on average per episode.
-    #     # dist_obj = self.world.agent_to_object_vector().length
-    #     # if dist_obj >= self.reference_corridor_width:
-    #     #     agent_obj_penalty = -1.0
-    #     # else:
-    #     #     agent_obj_penalty = 0.05 * (-dist_obj / self.reference_corridor_width)
-
-    #     # Agent to corridor reward
-    #     d = self._agent_to_corridor_dist()
-    #     if d >= self.reference_corridor_width:
-    #         agent_corr_penalty = -1.0
-    #     else:
-    #         agent_corr_penalty = 0.05 * (-d / self.reference_corridor_width)
-    #     # # Corridor Penalty: 
-    #     # corr_multiplier = 0.3 # Corr penalty in [-corr_multiplier, 0]
-    #     # dist_obj_corr = self.distance_point_to_line(
-    #     #     self.world.obj.obj_rigid_body.position,
-    #     #     self.start_obj_pos,
-    #     #     self.world.goal['pos']
-    #     #     )
-    #     # corr_penalty = -corr_multiplier * min(1.0, dist_obj_corr / self.max_corr_width)
-
-    #     return 0.5*(progress_reward + orient_reward) + agent_corr_penalty + time_penalty
+        return progress_reward + agent_obj_penalty + time_penalty
 
     def _prepare_before_step(self, action):
         self.prev_action_queue.append(action)

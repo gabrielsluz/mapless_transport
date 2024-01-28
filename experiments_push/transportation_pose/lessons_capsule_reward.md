@@ -7,3 +7,6 @@ A behavior that is easier to learn can have a larger penalty than a harder one. 
 
 - Avoid suicide
 Sometimes the penalty may be too high, making it attractive for the agent to suicide, receiving a smaller penalty.
+
+- Success Reward is important
+It is the long term goal. It should be balanced to make the long term goal important.

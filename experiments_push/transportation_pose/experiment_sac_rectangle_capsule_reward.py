@@ -34,7 +34,7 @@ config = TransportationEnvConfig(
     reference_corridor_width=10.0
 )
 
-exp_name = 'capsule_reward_pos_control_capsule_full'
+exp_name = 'capsule_reward_pos_control_agent_to_obj_continuous'
 
 obs_l_dict = {
     k: obstacle_l_dict[k] 
