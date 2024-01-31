@@ -67,12 +67,12 @@ class TransportationEnv(gym.Env):
         #     n_rays + 6 + self.prev_act_len,
         # )
         self.observation_shape = (
-            8,
+            6,
         )
         self.observation_space = spaces.Box(
             low=-np.inf, high=np.inf, shape=self.observation_shape, dtype=np.float32)
 
-        # self.max_obj_dist = self.world.max_obj_dist
+        self.max_obj_dist = self.world.max_obj_dist
         self.max_goal_dist = config.max_goal_dist# max(self.world.width, self.world.height)
         self.reference_corridor_width = config.reference_corridor_width
 
@@ -92,6 +92,9 @@ class TransportationEnv(gym.Env):
             (self.start_obj_pos.x, self.start_obj_pos.y),
             (self.world.goal['pos'].x, self.world.goal['pos'].y)
         ])
+
+        self.episode_agent_max_corr_width = self._agent_to_corridor_dist()
+        self.episode_obj_max_corr_width = self._object_to_corridor_dist()
 
 
     # def _gen_current_observation(self):
@@ -125,17 +128,18 @@ class TransportationEnv(gym.Env):
 
     def _gen_current_observation(self):
         # Only sees the start_obj_pos and goal
-        v = self.start_obj_pos - self.world.agent.agent_rigid_body.position
-        angle = np.arctan2(v[1], v[0])
-        start_obs = np.array([
-            angle/np.pi, 
-            v.length / self.reference_corridor_width])
+        # v = self.start_obj_pos - self.world.agent.agent_rigid_body.position
+        # angle = np.arctan2(v[1], v[0])
+        # start_obs = np.array([
+        #     angle/np.pi, 
+        #     v.length / self.max_goal_dist])
         
         agent_to_goal = self.world.agent_to_goal_vector()
         # Calc angle between agent_to_goal and x-axis
         angle = np.arctan2(agent_to_goal[1], agent_to_goal[0])
         goal_obs = np.array([
-            angle/np.pi, min(agent_to_goal.length/self.max_goal_dist, 1.0),
+            angle/np.pi, 
+            agent_to_goal.length / self.max_goal_dist,
             self.world.goal['angle']/(2*math.pi)
             ])
 
@@ -146,11 +150,39 @@ class TransportationEnv(gym.Env):
         angle = np.arctan2(agent_to_obj[1], agent_to_obj[0])
         obj_obs = np.array([
             angle/np.pi, 
-            agent_to_obj.length / self.reference_corridor_width, 
+            agent_to_obj.length / self.max_obj_dist, 
             obj_angle / (2*np.pi)
             ])
 
-        return np.concatenate((start_obs, goal_obs, obj_obs), dtype=np.float32)
+        return np.concatenate((goal_obs, obj_obs), dtype=np.float32)
+        # return np.concatenate((start_obs, goal_obs, obj_obs), dtype=np.float32)
+
+    # def _gen_current_observation(self):
+    #     range_l, _, _ = self.world.get_laser_readings()
+    #     laser_readings = np.array(range_l) / (self.world.range_max)
+
+    #     # angle, dist, goal_angle
+    #     agent_to_goal = self.world.agent_to_goal_vector()
+    #     # Calc angle between agent_to_goal and x-axis
+    #     angle = np.arctan2(agent_to_goal[1], agent_to_goal[0])
+    #     goal_obs = np.array([
+    #         angle/np.pi, 
+    #         agent_to_goal.length / self.max_goal_dist,
+    #         self.world.goal['angle']/(2*math.pi)
+    #         ])
+
+    #     # angle, dist, object angle
+    #     obj_angle = math.fmod(self.world.obj.obj_rigid_body.angle, 2*math.pi)
+    #     agent_to_obj = self.world.agent_to_object_vector()
+    #     # Calc angle between agent_to_obj and x-axis
+    #     angle = np.arctan2(agent_to_obj[1], agent_to_obj[0])
+    #     obj_obs = np.array([
+    #         angle/np.pi, 
+    #         agent_to_obj.length / self.reference_corridor_width, 
+    #         obj_angle / (2*np.pi)
+    #         ])
+
+    #     return np.concatenate((laser_readings, goal_obs, obj_obs), dtype=np.float32)
 
     
     def _gen_observation(self):
@@ -184,7 +216,9 @@ class TransportationEnv(gym.Env):
         return self.world.did_object_reach_goal()
 
     def _check_death(self):
-        return self.world.did_agent_collide() or self.world.did_object_collide()
+        obj_dist = self.world.agent_to_object_vector().length
+        return self.world.did_agent_collide() or self.world.did_object_collide() or obj_dist > self.max_obj_dist
+        # return self.world.did_agent_collide() or self.world.did_object_collide()
     
     def _agent_to_corridor_dist(self):
         d = self.capsule_line.distance(
@@ -204,73 +238,185 @@ class TransportationEnv(gym.Env):
                     max_d = d
         return max_d
 
+    # def _calc_reward(self):
+    #     time_penalty = -0.01
+    #     # Success
+    #     if self._check_success():
+    #         return 5.0 #0.5
+    #     # Progress 
+    #     # On average the final progress reward is 1.0 when successful
+    #     cur_dist = self.world.object_to_goal_vector().length
+    #     progress_reward = (self.last_obj_to_goal_d - cur_dist)
+    #     progress_reward = progress_reward / (self.max_goal_dist/2)
+
+    #     orient_reward = abs(self.last_obj_to_goal_angle_d) - abs(self.world.distToOrientation()/np.pi)
+
+    #     # Corridor penalty
+    #     d = self._agent_to_corridor_dist()
+    #     if d >= self.reference_corridor_width:
+    #         # agent_corr_penalty = -0.1
+    #         agent_corr_penalty = 0.0#-0.02
+    #     else:
+    #         # agent_corr_penalty = 0.01 * (-d / self.reference_corridor_width)
+    #         agent_corr_penalty = 0.0
+    #     # Corridor penalty
+    #     d = self._object_to_corridor_dist()
+    #     if d >= self.reference_corridor_width:
+    #         # obj_corr_penalty = -0.1
+    #         obj_corr_penalty = 0.0#-0.02
+    #     else:
+    #         # obj_corr_penalty = 0.01 * (-d / self.reference_corridor_width)
+    #         obj_corr_penalty = 0.0
+    #     # Stay close to object
+    #     d = self.world.agent_to_object_vector().length
+    #     if d >= self.reference_corridor_width:
+    #         agent_obj_penalty = -0.1
+    #     else:
+    #         agent_obj_penalty = 0.0
+
+    #     # return 0.5*(progress_reward + orient_reward) + agent_corr_penalty + obj_corr_penalty + agent_obj_penalty + time_penalty
+    #     return progress_reward + orient_reward + agent_obj_penalty + time_penalty
+
+    # def _calc_reward(self):
+    #     """
+    #     Reward is based on decreasing variables. => it is the negative of the variable at each step.
+    #     """
+    #     # Success
+    #     if self._check_success():
+    #         return 5.0 #0.5
+    #     dist_norm = self.max_goal_dist / 2.0
+    #     # Get object to goal position
+    #     d = self.world.object_to_goal_vector().length  / dist_norm
+    #     goal_pos_dist_penalty = -d
+
+    #     # Stay close to object
+    #     d = self.world.agent_to_object_vector().length / dist_norm
+    #     agent_obj_penalty = -d
+
+    #     penalty = (
+    #         0.7 * goal_pos_dist_penalty +
+    #         0.3 * agent_obj_penalty
+    #     )
+    #     return penalty / 50.0
+
+    # def _calc_reward(self):
+    #     time_penalty = -0.01
+    #     # Success
+    #     if self._check_success():
+    #         return 5.0 #0.5
+    #     # Death
+    #     if self._check_death():
+    #         return -1.0
+        
+    #     dist_norm = self.max_goal_dist / 2.0
+    #     # Progress 
+    #     # On average the final progress reward is 1.0 when successful
+    #     cur_obj_goal_d = self.world.object_to_goal_vector().length
+    #     dist_reward = self.last_obj_to_goal_d - cur_obj_goal_d
+    #     dist_reward = dist_reward / dist_norm
+
+    #     orient_reward = abs(self.last_obj_to_goal_angle_d) - abs(self.world.distToOrientation())
+    #     orient_reward = orient_reward / (np.pi/2)
+
+    #     progress_reward = dist_reward #+ 0.4*orient_reward
+
+    #     # # Squared Progress
+    #     # cur_obj_goal_d = self.world.object_to_goal_vector().length
+    #     # dist_reward = (self.last_obj_to_goal_d / dist_norm)**2 - (cur_obj_goal_d / dist_norm)**2
+
+    #     # orient_reward = (self.last_obj_to_goal_angle_d / (np.pi/2))**2 - (self.world.distToOrientation() / (np.pi/2))**2
+
+    #     # progress_reward = dist_reward + orient_reward
+
+    #     # agent_corr_reward = self.last_agent_to_corridor_d - self._agent_to_corridor_dist()
+    #     # agent_corr_reward = agent_corr_reward / dist_norm
+        
+    #     reward = (
+    #         1.0 * progress_reward +
+    #         # 0.2 * agent_corr_reward +
+    #         time_penalty
+    #     )
+    #     return reward
+
+    # def _calc_reward(self):
+    #     # Reward based on the progress of the agent towards the goal	
+    #     # Limits the maximum reward to [-1.0, 2.0] on average
+    #     progress_reward = 0.0
+    #     success_reward = 0.5
+    #     death_penalty = -1.0	
+    #     time_penalty = -0.01	
+
+    #     # Success
+    #     if self._check_success():
+    #         return success_reward
+    #     # Death
+    #     if self._check_death():
+    #         return death_penalty
+    #     # Progress 
+    #     # On average the final progress reward is 1.0 when successful
+    #     cur_dist = self.world.object_to_goal_vector().length
+    #     progress_reward = (self.last_obj_to_goal_d - cur_dist)
+    #     progress_reward = progress_reward / (self.max_goal_dist/2)
+
+    #     orient_reward = abs(self.last_obj_to_goal_angle_d / np.pi) - abs(self.world.distToOrientation()/np.pi)
+        
+    #     #return 0.5*(progress_reward + orient_reward) + time_penalty
+    #     return 0.7*(progress_reward + 0.4*orient_reward) + time_penalty
+    
     def _calc_reward(self):
-        time_penalty = -0.01
+        # Reward based on the progress of the agent towards the goal	
+        # Limits the maximum reward to [-1.0, 2.0] on average
+        progress_reward = 0.0
+        success_reward = 0.5
+        death_penalty = -2.0	
+        time_penalty = -0.01	
+
+        # Capsule penalty
+        self.episode_agent_max_corr_width = max(
+            self.episode_agent_max_corr_width, self._agent_to_corridor_dist())
+        self.episode_obj_max_corr_width = max(
+            self.episode_obj_max_corr_width, self._object_to_corridor_dist())
+        
+        # Penalty = -1 in max_width = reference_corridor_width
+        agent_corr_penalty = -self.episode_agent_max_corr_width / self.reference_corridor_width
+        agent_corr_penalty = (agent_corr_penalty * 0.2) + 0.2
+
+        obj_corr_penalty = -self.episode_obj_max_corr_width / self.reference_corridor_width
+        obj_corr_penalty = (obj_corr_penalty * 0.2) + 0.2
+
+        capsule_reward = agent_corr_penalty + obj_corr_penalty
+
+        # Terminated
         # Success
         if self._check_success():
-            return 5.0 #0.5
+            return success_reward + capsule_reward
+        # Death
+        if self._check_death():
+            return death_penalty + capsule_reward
         # Progress 
         # On average the final progress reward is 1.0 when successful
         cur_dist = self.world.object_to_goal_vector().length
-        progress_reward = (self.last_dist - cur_dist)
+        progress_reward = (self.last_obj_to_goal_d - cur_dist)
         progress_reward = progress_reward / (self.max_goal_dist/2)
 
-        orient_reward = abs(self.last_orient_error) - abs(self.world.distToOrientation()/np.pi)
+        orient_reward = abs(self.last_obj_to_goal_angle_d / np.pi) - abs(self.world.distToOrientation()/np.pi)
 
-        # Corridor penalty
-        d = self._agent_to_corridor_dist()
-        if d >= self.reference_corridor_width:
-            # agent_corr_penalty = -0.1
-            agent_corr_penalty = 0.0#-0.02
-        else:
-            # agent_corr_penalty = 0.01 * (-d / self.reference_corridor_width)
-            agent_corr_penalty = 0.0
-        # Corridor penalty
-        d = self._object_to_corridor_dist()
-        if d >= self.reference_corridor_width:
-            # obj_corr_penalty = -0.1
-            obj_corr_penalty = 0.0#-0.02
-        else:
-            # obj_corr_penalty = 0.01 * (-d / self.reference_corridor_width)
-            obj_corr_penalty = 0.0
-        # Stay close to object
-        d = self.world.agent_to_object_vector().length
-        if d >= self.reference_corridor_width:
-            agent_obj_penalty = -0.1
-        else:
-            agent_obj_penalty = 0.0
-
-        # return 0.5*(progress_reward + orient_reward) + agent_corr_penalty + obj_corr_penalty + agent_obj_penalty + time_penalty
-        return progress_reward + orient_reward + agent_obj_penalty + time_penalty
-
-    def _calc_reward(self):
-        """
-        Reward is based on decreasing variables. => it is the negative of the variable at each step.
-        """
-        time_penalty = -0.01
-        # Success
-        if self._check_success():
-            return 5.0 #0.5
-        # Progress 
-        # On average the final progress reward is 1.0 when successful
-        cur_dist = self.world.object_to_goal_vector().length
-        progress_reward = (self.last_dist - cur_dist)
-        progress_reward = progress_reward / (self.max_goal_dist/2)
-
-        # Stay close to object
-        d = self.world.agent_to_object_vector().length / self.reference_corridor_width
-        agent_obj_penalty = 0.01 * -d
-
-        return progress_reward + agent_obj_penalty + time_penalty
+        return 0.5*(progress_reward + orient_reward) + time_penalty
 
     def _prepare_before_step(self, action):
         self.prev_action_queue.append(action)
-        self.last_dist = self.world.object_to_goal_vector().length
-        self.last_orient_error = self.world.distToOrientation()/ np.pi
+
+        # Progress to goal
+        self.last_obj_to_goal_d = self.world.object_to_goal_vector().length
+        self.last_obj_to_goal_angle_d = self.world.distToOrientation()
+
+        # Capsule
+        self.last_agent_to_corridor_d = self._agent_to_corridor_dist()
+
 
     # def _prepare_before_step(self, action):
     #     self.prev_action_queue.append(action)
-    #     self.last_dist = self.world.agent_to_goal_vector().length
+    #     self.last_obj_to_goal_d = self.world.agent_to_goal_vector().length
 
 
     def step(self, action):

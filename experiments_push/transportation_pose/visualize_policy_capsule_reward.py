@@ -67,10 +67,10 @@ config = TransportationEnvConfig(
         agent_type = 'continuous',
         max_force_length=5.0,
         min_force_length=0.1,
-        goal_tolerance={'pos':2, 'angle':np.pi},
+        goal_tolerance={'pos':2, 'angle':np.pi/18},
         max_obj_dist=10.0
     ),
-    max_steps = 100,
+    max_steps = 50,
     previous_obs_queue_len = 0,
     reward_scale=10.0,
     reference_corridor_width=10.0
@@ -88,7 +88,7 @@ obs_l_dict = {
 }
 env = TransportationMixEnv(config, obs_l_dict)
 
-model = SAC.load('model_ckp/capsule_reward_pos_control_capsule')
+model = SAC.load('model_ckp/capsule_reward_pose_control_potential')
 print(model.policy)
 
 scene_buffer = CvDrawBuffer(window_name="Simulation", resolution=(1024,1024))

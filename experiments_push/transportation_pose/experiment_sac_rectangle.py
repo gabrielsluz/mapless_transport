@@ -25,14 +25,14 @@ config = TransportationEnvConfig(
         agent_type = 'continuous',
         max_force_length=5.0,
         min_force_length=0.1,
-        goal_tolerance={'pos':1, 'angle':np.pi/36}
+        goal_tolerance={'pos':2, 'angle':np.pi/18}
     ),
     max_steps = 500,
     previous_obs_queue_len = 0,
-    reward_scale=20.0
+    reward_scale=10.0
 )
 
-exp_name = 'progress_sac_rectangle_tolerance_pi36_pos_tol_1_reward_scale_20'
+exp_name = 'progress_sac_rectangle_tolerance_pi18_pos_tol_2_reward_scale_10'
 
 obs_l_dict = {
     k: obstacle_l_dict[k] 
