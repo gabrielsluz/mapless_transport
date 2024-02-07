@@ -67,10 +67,10 @@ config = TransportationEnvConfig(
         agent_type = 'continuous',
         max_force_length=5.0,
         min_force_length=0.1,
-        goal_tolerance={'pos':2, 'angle':np.pi/18},
-        max_obj_dist=10.0
+        goal_tolerance={'pos':2, 'angle':np.pi},
+        max_obj_dist=14.0
     ),
-    max_steps = 50,
+    max_steps = 100,
     previous_obs_queue_len = 0,
     reward_scale=10.0,
     reference_corridor_width=10.0
@@ -88,7 +88,7 @@ obs_l_dict = {
 }
 env = TransportationMixEnv(config, obs_l_dict)
 
-model = SAC.load('model_ckp/capsule_reward_pose_control_potential')
+model = SAC.load('model_ckp/capsule_reward_pose_control_capsule_potential_start_obj_2xcapsule_reward_pos_tol_2_angle_pi')
 print(model.policy)
 
 scene_buffer = CvDrawBuffer(window_name="Simulation", resolution=(1024,1024))
@@ -104,6 +104,9 @@ while True:
     render()
     if terminated or truncated:
         success_l.append(info['is_success'])
+        print()
+        print('Max Agent W:', int(env.cur_env.episode_agent_max_corr_width))
+        print('Max Obj W:', int(env.cur_env.episode_obj_max_corr_width))
         obs, info = env.reset()
         print('Reward: ', acc_reward)
         acc_reward = 0

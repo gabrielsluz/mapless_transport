@@ -432,4 +432,41 @@ obstacle_l_dict = {
         {'name': 'Polygon', 'pos':(80, 80.0), 'vertices': [(31, 46.0), (43,28), (47.5,46.3)]},
     ],
 
+    # Very large pushing maps: 200x200
+    'very_big_U': [
+        # Frame
+        {'name':'Rectangle', 'pos':(100.0, 0.0), 'height':5.0, 'width':200.0},
+        {'name':'Rectangle', 'pos':(100.0, 200.0), 'height':5.0, 'width':200.0},
+        {'name':'Rectangle', 'pos':(0.0, 100.0), 'height':200.0, 'width':5.0},
+        {'name':'Rectangle', 'pos':(200.0, 100.0), 'height':200.0, 'width':5.0},
+        # Inside walls
+        {'name':'Rectangle', 'pos':(66.0, 100.0), 'height':100.0, 'width':3.0},
+        {'name':'Rectangle', 'pos':(122.0, 100.0), 'height':100.0, 'width':3.0},
+        {'name':'Rectangle', 'pos':(98.0, 150.0), 'height':3.0, 'width':66.0}, 
+    ],
+    'very_big_sparse_2':[
+        # Frame
+        {'name':'Rectangle', 'pos':(100.0, 0.0), 'height':5.0, 'width':200.0},
+        {'name':'Rectangle', 'pos':(100.0, 200.0), 'height':5.0, 'width':200.0},
+        {'name':'Rectangle', 'pos':(0.0, 100.0), 'height':200.0, 'width':5.0},
+        {'name':'Rectangle', 'pos':(200.0, 100.0), 'height':200.0, 'width':5.0},
+
+        {'name':'Circle', 'pos':(100.0, 100.0), 'radius':24.0},
+        {'name':'Rectangle', 'pos':(160.0, 20.0), 'height':1.5*24.0, 'width':1.5*24.0},
+        {'name':'Circle', 'pos':(100.0, 20.0), 'radius':1.5*10.0},
+        {'name':'Rectangle', 'pos':(20.0, 80.0), 'height':1.5*50.0, 'width':1.5*8.0},
+        {'name': 'Polygon', 'pos':(56, 172.0), 'vertices': [(2*10,2*90), (2*27,2*80), (2*44,2*94)]},
+        {'name': 'Polygon', 'pos':(160, 160.0), 'vertices': [(4*31, 4*46.0), (4*43,4*28), (4*47.5,4*46.3)]},
+    ],
+    'very_big_parallel_walls': [
+        # Frame
+        {'name':'Rectangle', 'pos':(100.0, 0.0), 'height':5.0, 'width':200.0},
+        {'name':'Rectangle', 'pos':(100.0, 200.0), 'height':5.0, 'width':200.0},
+        {'name':'Rectangle', 'pos':(0.0, 100.0), 'height':200.0, 'width':5.0},
+        {'name':'Rectangle', 'pos':(200.0, 100.0), 'height':200.0, 'width':5.0},
+        # Inside walls
+        {'name':'Rectangle', 'pos':(2*30.0, 2*75.0), 'height':2*75.0, 'width':5.0},
+        {'name':'Rectangle', 'pos':(2*60.0, 2*25.0), 'height':2*75.0, 'width':5.0},
+    ],
+
 }

@@ -25,7 +25,7 @@ config = TransportationEnvConfig(
         agent_type = 'continuous',
         max_force_length=5.0,
         min_force_length=0.1,
-        goal_tolerance={'pos':2, 'angle':np.pi/18},
+        goal_tolerance={'pos':2, 'angle':np.pi},
         max_obj_dist=14.0
     ),
     max_steps = 500,
@@ -34,7 +34,7 @@ config = TransportationEnvConfig(
     reference_corridor_width=10.0
 )
 
-exp_name = 'capsule_reward_pose_control_capsule_at_end_pos_tol_2_angle_pi_18'
+exp_name = 'capsule_reward_pose_control_capsule_potential_start_obj_2xcapsule_reward_pos_tol_2_angle_pi'
 
 obs_l_dict = {
     k: obstacle_l_dict[k] 

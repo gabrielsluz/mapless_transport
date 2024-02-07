@@ -67,7 +67,7 @@ class TransportationEnv(gym.Env):
         #     n_rays + 6 + self.prev_act_len,
         # )
         self.observation_shape = (
-            6,
+            8,
         )
         self.observation_space = spaces.Box(
             low=-np.inf, high=np.inf, shape=self.observation_shape, dtype=np.float32)
@@ -93,47 +93,17 @@ class TransportationEnv(gym.Env):
             (self.world.goal['pos'].x, self.world.goal['pos'].y)
         ])
 
+        # Corridor line: [a, b] => ax + b = y
+        # From points: self.start_obj_pos e self.world.goal
+        self.corr_line = [
+            (self.world.goal['pos'].y - self.start_obj_pos.y) / (self.world.goal['pos'].x - self.start_obj_pos.x),
+            self.start_obj_pos.y - self.start_obj_pos.x * (self.world.goal['pos'].y - self.start_obj_pos.y) / (self.world.goal['pos'].x - self.start_obj_pos.x)
+        ]
+
         self.episode_agent_max_corr_width = self._agent_to_corridor_dist()
         self.episode_obj_max_corr_width = self._object_to_corridor_dist()
 
-
-    # def _gen_current_observation(self):
-    #     range_l, _, _ = self.world.get_laser_readings()
-    #     laser_readings = np.array(range_l) / (self.world.range_max)
-
-    #     # angle, dist, goal_angle
-    #     agent_to_goal = self.world.agent_to_goal_vector()
-    #     # Calc angle between agent_to_goal and x-axis
-    #     angle = np.arctan2(agent_to_goal[1], agent_to_goal[0])
-    #     goal_obs = np.array([
-    #         angle/np.pi, min(agent_to_goal.length/self.max_goal_dist, 1.0),
-    #         self.world.goal['angle']/(2*math.pi)
-    #         ])
-        
-    #     # angle, dist, object angle
-    #     obj_angle = math.fmod(self.world.obj.obj_rigid_body.angle, 2*math.pi)
-    #     if obj_angle < 0.0: obj_angle += 2*math.pi
-    #     obj_angle = obj_angle / (2*math.pi)
-        
-    #     agent_to_obj = self.world.agent_to_object_vector()
-    #     # Calc angle between agent_to_obj and x-axis
-    #     angle = np.arctan2(agent_to_obj[1], agent_to_obj[0])
-    #     obj_obs = np.array([
-    #         angle/np.pi, 
-    #         agent_to_obj.length / self.reference_corridor_width, 
-    #         obj_angle
-    #         ])
-
-    #     return np.concatenate((laser_readings, goal_obs, obj_obs), dtype=np.float32)
-
-    def _gen_current_observation(self):
-        # Only sees the start_obj_pos and goal
-        # v = self.start_obj_pos - self.world.agent.agent_rigid_body.position
-        # angle = np.arctan2(v[1], v[0])
-        # start_obs = np.array([
-        #     angle/np.pi, 
-        #     v.length / self.max_goal_dist])
-        
+    def _gen_current_observation(self):        
         agent_to_goal = self.world.agent_to_goal_vector()
         # Calc angle between agent_to_goal and x-axis
         angle = np.arctan2(agent_to_goal[1], agent_to_goal[0])
@@ -153,38 +123,34 @@ class TransportationEnv(gym.Env):
             agent_to_obj.length / self.max_obj_dist, 
             obj_angle / (2*np.pi)
             ])
+        
+        v = self.start_obj_pos - self.world.agent.agent_rigid_body.position
+        angle = np.arctan2(v[1], v[0])
+        start_obs = np.array([
+            angle/np.pi, 
+            v.length / self.max_goal_dist])
 
-        return np.concatenate((goal_obs, obj_obs), dtype=np.float32)
-        # return np.concatenate((start_obs, goal_obs, obj_obs), dtype=np.float32)
+        # # Corridor observation
+        # # Find the closest point to the agent center in the corridor line
+        # # ax + by +c = 0
+        # a = self.corr_line[0]
+        # b = -1.0
+        # c = self.corr_line[1]
+        # p0 = self.world.agent.agent_rigid_body.position
+        # p_x = (b*(b*p0.x - a*p0.y) - a*c) / (a*a + b*b)
+        # p_y = (a*(-b*p0.x + a*p0.y) - b*c) / (a*a + b*b)
 
-    # def _gen_current_observation(self):
-    #     range_l, _, _ = self.world.get_laser_readings()
-    #     laser_readings = np.array(range_l) / (self.world.range_max)
+        # v = b2Vec2(p_x, p_y) - p0
+        # # Calc angle between agent_to_obj and x-axis
+        # angle = np.arctan2(v[1], v[0])
+        # corr_obs = np.array([
+        #     angle/np.pi,
+        #     v.length / self.max_goal_dist
+        #     ])
 
-    #     # angle, dist, goal_angle
-    #     agent_to_goal = self.world.agent_to_goal_vector()
-    #     # Calc angle between agent_to_goal and x-axis
-    #     angle = np.arctan2(agent_to_goal[1], agent_to_goal[0])
-    #     goal_obs = np.array([
-    #         angle/np.pi, 
-    #         agent_to_goal.length / self.max_goal_dist,
-    #         self.world.goal['angle']/(2*math.pi)
-    #         ])
-
-    #     # angle, dist, object angle
-    #     obj_angle = math.fmod(self.world.obj.obj_rigid_body.angle, 2*math.pi)
-    #     agent_to_obj = self.world.agent_to_object_vector()
-    #     # Calc angle between agent_to_obj and x-axis
-    #     angle = np.arctan2(agent_to_obj[1], agent_to_obj[0])
-    #     obj_obs = np.array([
-    #         angle/np.pi, 
-    #         agent_to_obj.length / self.reference_corridor_width, 
-    #         obj_angle / (2*np.pi)
-    #         ])
-
-    #     return np.concatenate((laser_readings, goal_obs, obj_obs), dtype=np.float32)
-
-    
+        # return np.concatenate((goal_obs, obj_obs), dtype=np.float32)
+        return np.concatenate((start_obs, goal_obs, obj_obs), dtype=np.float32)
+ 
     def _gen_observation(self):
         cur_obs = self._gen_current_observation()
 
@@ -384,7 +350,7 @@ class TransportationEnv(gym.Env):
         obj_corr_penalty = -self.episode_obj_max_corr_width / self.reference_corridor_width
         obj_corr_penalty = (obj_corr_penalty * 0.2) + 0.2
 
-        capsule_reward = agent_corr_penalty + obj_corr_penalty
+        capsule_reward = 2*(agent_corr_penalty + obj_corr_penalty)
 
         # Terminated
         # Success
@@ -401,7 +367,20 @@ class TransportationEnv(gym.Env):
 
         orient_reward = abs(self.last_obj_to_goal_angle_d / np.pi) - abs(self.world.distToOrientation()/np.pi)
 
-        return 0.5*(progress_reward + orient_reward) + time_penalty
+        # Capsule Potential Reward
+        capsule_agent_potential_reward = (
+            (self.last_agent_to_corridor_d - self._agent_to_corridor_dist()) / (self.max_goal_dist/2)
+        )
+        capsule_object_potential_reward = (
+            (self.last_object_to_corridor_d - self._object_to_corridor_dist()) / (self.max_goal_dist/2)
+        )
+
+        return (
+            0.5*progress_reward + 
+            0.5*orient_reward +
+            0.1*capsule_agent_potential_reward +
+            0.1*capsule_object_potential_reward +
+            time_penalty)
 
     def _prepare_before_step(self, action):
         self.prev_action_queue.append(action)
@@ -412,6 +391,7 @@ class TransportationEnv(gym.Env):
 
         # Capsule
         self.last_agent_to_corridor_d = self._agent_to_corridor_dist()
+        self.last_object_to_corridor_d = self._object_to_corridor_dist()
 
 
     # def _prepare_before_step(self, action):
