@@ -138,48 +138,27 @@ if __name__ == "__main__":
                 #         open('research_envs/obj_utils/polygons/tentacle_multi.json', 'r')
                 #     )['polygons']
                 # }
-
             ],
             n_rays = 0,
             agent_type = 'continuous',
             max_force_length=1.0,
             min_force_length=0.0,
             goal_tolerance={'pos':2, 'angle':np.pi},
-            max_obj_dist=10.0
+            max_obj_dist=10.0,
         ),
         max_steps=500,
         previous_obs_queue_len=0,
         reward_scale=1.0,
+        corridor_width_range=(10.0, 10.0)
     )
     obs_l_dict = {
         k: obstacle_l_dict[k] 
         for k in [
             'empty'
-        #     'empty', 'frame', 'horizontal_corridor', 'vertical_corridor','4_circles_wide',
-        # '1_circle', '1_rectangle', '1_triangle'
-            # 'circle_line', 'small_4_circles',
-            #'4_circles', 'sparse_1', 'sparse_2',
-            # '1_circle', '1_rectangle', '1_triangle',
-            #'corridor', 'crooked_corridor',
-            # '16_circles', '25_circles', '49_circles',
-            # '1_circle', '1_rectangle', '1_triangle',
-            # 'corridor', 'crooked_corridor',
-            # '16_circles', '25_circles', '49_circles',
-            # 'small_U', 'small_G',
-            # 'U', 'G'
         ]
     }
     env = TransportationMixEnv(config, obs_l_dict)
 
-    # config = TransportationEnvConfig(
-    #     world_config= TransportationWorldConfig(
-    #         obstacle_l = obstacle_l_dict['1_circle'],
-    #         n_rays = 24,
-    #         range_max = 25.0
-    #     ),
-    #     max_steps=200
-    # )
-    # env = TransportationEnv(config)
     print('Env created.')
     
     acc_reward = 0.0

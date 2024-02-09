@@ -5,10 +5,9 @@ sys.path.append('../..')
 from research_envs.b2PushWorld.TransportationPoseWorld import TransportationWorldConfig
 from research_envs.envs.transportation_pose_capsule_conditioned_env import TransportationEnvConfig, TransportationMixEnv
 from research_envs.envs.obstacle_repo import obstacle_l_dict
-from stable_baselines3 import SAC
+from stable_baselines3 import PPO
 
 import os
-import json
 import numpy as np
 
 
@@ -34,7 +33,7 @@ config = TransportationEnvConfig(
     corridor_width_range = (10.0, 20.0)
 )
 
-exp_name = 'pos_tol_2_angle_pi_corridor_10_20_reward_scale_10_success_1_death_1'
+exp_name = 'pos_tol_2_angle_pi_corridor_10_20_reward_scale_10_ppo'
 
 obs_l_dict = {
     k: obstacle_l_dict[k] 
@@ -44,8 +43,9 @@ obs_l_dict = {
 }
 env = TransportationMixEnv(config, obs_l_dict)
 
-model = SAC(
+model = PPO(
     "MlpPolicy", env,
+    ent_coef=0.01,
     verbose=1, tensorboard_log="./tensorboard_dir/")
 print(model.policy)
 

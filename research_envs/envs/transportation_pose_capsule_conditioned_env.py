@@ -151,9 +151,8 @@ class TransportationEnv(gym.Env):
     def _calc_reward(self):
         # Reward based on the progress of the agent towards the goal	
         # Limits the maximum reward to [-1.0, 2.0] on average
-        progress_reward = 0.0
-        success_reward = 0.5
-        death_penalty = -2.0	
+        success_reward = 1.0
+        death_penalty = -1.0	
         time_penalty = -0.01	
 
         # Terminated
