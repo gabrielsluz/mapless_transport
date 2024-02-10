@@ -273,6 +273,11 @@ class TransportationWorld:
         self.agent_collided = 0
         self.object_collided = 0
 
+        sampled_pos = self.gen_non_overlapping_position(self.goal_tolerance['pos']+self.obj.obj_radius)
+        self.goal['pos'].x = sampled_pos[0]
+        self.goal['pos'].y = sampled_pos[1]
+        self.goal['angle'] = random.uniform(0, 2*np.pi)
+
         self.obj = self.obj_l[random.randrange(0, len(self.obj_l))]
         self.obj.obj_rigid_body.position = self.gen_non_overlapping_position(
             1.2*(self.obj.obj_radius + 2*self.agent.agent_radius))
@@ -288,11 +293,6 @@ class TransportationWorld:
         ]
         self.agent.agent_rigid_body.position = self.gen_non_overlapping_position_in_limit(
             self.agent.agent_radius*1.2, x_lim, y_lim)
-
-        sampled_pos = self.gen_non_overlapping_position(self.goal_tolerance['pos']+self.obj.obj_radius)
-        self.goal['pos'].x = sampled_pos[0]
-        self.goal['pos'].y = sampled_pos[1]
-        self.goal['angle'] = random.uniform(0, 2*np.pi)
 
     # ----------- Laser Sensor -----------
     def get_laser_readings(self):
