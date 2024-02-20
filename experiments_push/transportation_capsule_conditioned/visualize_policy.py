@@ -94,13 +94,13 @@ config = TransportationEnvConfig(
         agent_type = 'continuous',
         max_force_length=5.0,
         min_force_length=0.1,
-        goal_tolerance={'pos':2, 'angle':np.pi},
+        goal_tolerance={'pos':2, 'angle':np.pi/18},
         max_obj_dist=10.0
     ),
     max_steps = 100,
     previous_obs_queue_len = 0,
     reward_scale=10.0,
-    corridor_width_range = (10.0, 10.0)
+    corridor_width_range = (12.0, 12.0)
 )
 
 obs_l_dict = {
@@ -108,7 +108,7 @@ obs_l_dict = {
 }
 env = TransportationMixEnv(config, obs_l_dict)
 
-model = SAC.load('model_ckp/pos_tol_2_angle_pi_corridor_10_20_reward_scale_10_success_1_death_1')
+model = SAC.load('model_ckp/pos_tol_2_angle_pi18_corridor_10_20_reward_scale_10_success_1_death_1_nn_3x256')
 print(model.policy)
 
 scene_buffer = CvDrawBuffer(window_name="Simulation", resolution=(1024,1024))

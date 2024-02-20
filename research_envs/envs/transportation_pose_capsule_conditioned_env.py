@@ -43,7 +43,8 @@ class TransportationEnv(gym.Env):
         self.prev_act_len = config.previous_obs_queue_len*2
 
         self.observation_shape = (
-            8 + self.prev_act_len,
+            9 + self.prev_act_len,
+            # 8 + self.prev_act_len,
         )
         self.observation_space = spaces.Box(
             low=-np.inf, high=np.inf, shape=self.observation_shape, dtype=np.float32)
@@ -82,7 +83,7 @@ class TransportationEnv(gym.Env):
         goal_obs = np.array([
             angle/np.pi, 
             agent_to_goal.length / self.max_goal_dist,
-            # self.world.goal['angle']/(2*math.pi) # For PositionControl
+            self.world.goal['angle']/(2*math.pi) # Comment For PositionControl
             ])
 
         # angle, dist, object angle
@@ -156,22 +157,25 @@ class TransportationEnv(gym.Env):
         time_penalty = -0.01	
 
         # Terminated
+        termination_reward = 0.0
         # Success
         if self._check_success():
-            return success_reward
+            termination_reward =  success_reward
         # Death
         if self._check_death():
-            return death_penalty
+            termination_reward =  death_penalty
         # Progress 
         # On average the final progress reward is 1.0 when successful
         cur_dist = self.world.object_to_goal_vector().length
         progress_reward = (self.last_obj_to_goal_d - cur_dist)
         progress_reward = progress_reward / (self.max_goal_dist/2)
 
-        # orient_reward = abs(self.last_obj_to_goal_angle_d / np.pi) - abs(self.world.distToOrientation()/np.pi)
+        orient_reward = abs(self.last_obj_to_goal_angle_d / np.pi) - abs(self.world.distToOrientation()/np.pi)
         return (
-            progress_reward + 
-            # 0.5*orient_reward +
+            termination_reward +
+            # progress_reward +
+            0.5 * progress_reward + 
+            0.5 * orient_reward +
             time_penalty)
 
     def _prepare_before_step(self, action):
