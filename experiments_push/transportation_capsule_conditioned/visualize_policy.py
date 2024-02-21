@@ -81,7 +81,16 @@ def render():
     scene_buffer.Draw()
     cv2.waitKey(100)
 
-object_desc = {'name': 'Rectangle', 'height': 10.0, 'width': 5.0}
+# object_desc = {'name': 'Rectangle', 'height': 10.0, 'width': 5.0}
+object_desc = {
+    'name': 'MultiPolygons', 'poly_vertices_l':[
+    [[0, 0], [0, 4], [2, 4], [4, 2], [4, 0]],
+    [[0, 0], [0, 2], [-6, 2], [-6, 0]],
+    [[0, 0], [-4, -6], [0, -4]],
+
+    [[0, 0], [0, -4], [4, -4]],
+    [[0, 0], [2, -2], [4, 0]]]
+}
 print(object_desc)
 
 config = TransportationEnvConfig(
@@ -108,7 +117,7 @@ obs_l_dict = {
 }
 env = TransportationMixEnv(config, obs_l_dict)
 
-model = SAC.load('model_ckp/pos_tol_2_angle_pi18_corridor_10_20_reward_scale_10_success_1_death_1_nn_3x256')
+model = SAC.load('model_ckp/pos_tol_2_angle_pi18_corridor_10_20_reward_scale_10_success_1_death_1_nn_3x256_poly')
 print(model.policy)
 
 scene_buffer = CvDrawBuffer(window_name="Simulation", resolution=(1024,1024))
