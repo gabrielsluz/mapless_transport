@@ -104,7 +104,7 @@ if __name__ == "__main__":
             object_l=[
                 # {'name':'Circle', 'radius':4.0},
                 # Triangle using PolygonalObj:
-                # {'name': 'Polygon', 'vertices':[[-4, -2], [4, -2], [0, 6]]},
+                {'name': 'Polygon', 'vertices':[[-4, -2], [4, -2], [0, 6]]},
                 # {'name': 'Polygon', 'vertices':[[0, 0], [6, 9], [16, 0]]},
                 # {'name': 'Rectangle', 'height': 10.0, 'width': 5.0}
                 # {'name': 'ConcavePolygon', 'vertices':[[-4, -2], [4, -2], [4, 6], [2, 6], [2, 2], [-4, 2]]}
@@ -123,14 +123,14 @@ if __name__ == "__main__":
                 #     [[0, -3], [0, -6], [-3, -3]],
                 #     ]}
                 # Bizzarrer shape
-                {'name': 'MultiPolygons', 'poly_vertices_l':[
-                    [[0, 0], [0, 4], [2, 4], [4, 2], [4, 0]],
-                    [[0, 0], [0, 2], [-6, 2], [-6, 0]],
-                    [[0, 0], [-4, -6], [0, -4]],
+                # {'name': 'MultiPolygons', 'poly_vertices_l':[
+                #     [[0, 0], [0, 4], [2, 4], [4, 2], [4, 0]],
+                #     [[0, 0], [0, 2], [-6, 2], [-6, 0]],
+                #     [[0, 0], [-4, -6], [0, -4]],
 
-                    [[0, 0], [0, -4], [4, -4]],
-                    [[0, 0], [2, -2], [4, 0]]
-                ]}
+                #     [[0, 0], [0, -4], [4, -4]],
+                #     [[0, 0], [2, -2], [4, 0]]
+                # ]}
                 # Tentacle
                 # {
                 #     'name': 'MultiPolygons',
@@ -143,13 +143,13 @@ if __name__ == "__main__":
             agent_type = 'continuous',
             max_force_length=1.0,
             min_force_length=0.0,
-            goal_tolerance={'pos':2, 'angle':np.pi},
+            goal_tolerance={'pos':2, 'angle':np.pi/18},
             max_obj_dist=10.0,
         ),
         max_steps=500,
         previous_obs_queue_len=0,
         reward_scale=1.0,
-        corridor_width_range=(10.0, 10.0)
+        corridor_width_range=(10.0, 20.0)
     )
     obs_l_dict = {
         k: obstacle_l_dict[k] 
