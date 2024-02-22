@@ -3,7 +3,7 @@ import sys
 sys.path.append('../..')
 
 from research_envs.envs.transportation_pose_capsule_conditioned_env import TransportationEnvConfig, TransportationEnv
-from research_envs.envs.obstacle_repo import obstacle_l_dict
+from research_envs.envs.obstacle_repo_v2 import obstacle_l_dict
 from research_envs.b2PushWorld.TransportationPoseWorld import TransportationWorldConfig, LaserHit
 from research_envs.cv_buffer.CvDrawBuffer import CvDrawBuffer
 
@@ -433,6 +433,9 @@ obj_goal_init_slack = corridor_width * 1.1
 # Only evaluates laser rays in the direction of the candidate plus/minus this angle
 laser_angle_range = np.pi/2
 
+# If dist to final goal > pose_model_dist, use the position model
+pose_model_dist = 100.0
+
 macro_env_max_steps = 1000
 macro_env_steps = 0
 final_goal = None
@@ -448,7 +451,7 @@ sg_is_valid = False
 min_sg = None
 
 # Information gain
-trajectory_memory = TrajectoryMemory(min_step_len=2.0, max_step_len=2.0, max_len=200)
+trajectory_memory = TrajectoryMemory(min_step_len=2.0, max_step_len=2.0, max_len=300)
 trajectory_close_enough = 10.0
 min_dist_to_final_goal_for_info_gain = 10.0
 
@@ -465,7 +468,7 @@ print(object_desc)
 
 config = TransportationEnvConfig(
     world_config= TransportationWorldConfig(
-        obstacle_l = obstacle_l_dict['empty'],
+        obstacle_l = obstacle_l_dict['four_circles_120x120'],
         object_l=[
             object_desc
             ],
@@ -474,8 +477,8 @@ config = TransportationEnvConfig(
         agent_type = 'continuous',
         max_force_length=5.0,
         min_force_length=0.1,
-        width=100.0,
-        height=100.0,
+        width=120.0,
+        height=120.0,
         goal_tolerance={'pos':2, 'angle':np.pi/18},
         max_obj_dist=10.0
     ),
@@ -533,14 +536,15 @@ while True:
     if obj_stuck:
         agent_to_obj = env.world.agent_to_object_vector()
         angle = np.arctan2(agent_to_obj[1], agent_to_obj[0])
-        print('Stuck')
+        # print('Stuck')
         if angle < 0: angle += 2*np.pi
         action = np.array([angle / (2*np.pi), 0.5])
-    # If more distant than 10m, use the position model
-    elif (final_goal['pos'] - env.world.obj.obj_rigid_body.position).length > 10.0:
+    elif (final_goal['pos'] - env.world.obj.obj_rigid_body.position).length > pose_model_dist:
+        # print('Position Model')
         obs = adjust_obs_position(obs)
         action, _states = model_position.predict(obs, deterministic=True)
     else:
+        # print('Pose Model')
         obs = adjust_obs(obs)
         action, _states = model.predict(obs, deterministic=True)
     obs, reward, terminated, truncated, info = env.step(action)
