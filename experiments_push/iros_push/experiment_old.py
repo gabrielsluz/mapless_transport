@@ -5,9 +5,9 @@ sys.path.append('../..')
 from research_envs.b2PushWorld.TransportationPoseWorld import TransportationWorldConfig
 from research_envs.envs.transportation_pose_capsule_conditioned_env import TransportationEnvConfig, TransportationEnv
 from research_envs.envs.object_repo import object_desc_dict
-
 from stable_baselines3 import SAC
-from stable_baselines3.common.callbacks import EvalCallback
+
+from torch.utils.tensorboard import SummaryWriter
 
 import os
 import numpy as np
@@ -19,6 +19,20 @@ Output:
     - best_model_ckp/obj_{obj_id}.zip : best model according to evaluation loop
     - tensorboard_dir/obj_{obj_id} : directory containing the tensorboard logs
 """
+
+# Function for evaluation the policy and computing the success rate for n_episodes
+def evaluate_policy(model, eval_env, n_episodes):
+    success = 0
+    for _ in range(n_episodes):
+        obs, info = eval_env.reset()
+        done = False
+        while not done:
+            action, _ = model.predict(obs, deterministic=True)
+            obs, reward, terminated, truncated, info = eval_env.step(action)
+            done = terminated or truncated
+            if done:
+                success += info['is_success']
+    return success / n_episodes
 
 ###################### OBJECT ID ######################
 obj_id = int(sys.argv[1])
@@ -76,31 +90,47 @@ ckp_dir = 'model_ckp'
 if not os.path.exists(ckp_dir): 
     os.makedirs(ckp_dir) 
 
-eval_callback = EvalCallback(
-    eval_env, 
-    best_model_save_path=ckp_dir+'/'+exp_name,
-    log_path=ckp_dir+'/'+exp_name,
-    n_eval_episodes=1_000,
-    eval_freq=100_000,
-    deterministic=True, render=False)
+best_ckp_dir = 'best_model_ckp'
+if not os.path.exists(best_ckp_dir): 
+    os.makedirs(best_ckp_dir) 
+best_score = None
 
+# Create tensorboard writer
+# writer = SummaryWriter(log_dir='tensorboard_dir/eval_' + exp_name)
+
+cur_step = 0
 # Main training loop
 model.learn(
-    total_timesteps=2_500_000, log_interval=100, progress_bar=True, reset_num_timesteps=True,
-    callback=eval_callback,
+    total_timesteps=1000, log_interval=10, progress_bar=True, reset_num_timesteps=True,
     tb_log_name=exp_name)
+cur_step += 1000
 
+# for _ in range(49):
+#     model.learn(
+#         total_timesteps=50000, log_interval=10, progress_bar=True, reset_num_timesteps=False,
+#         tb_log_name=exp_name)
+#     cur_step += 50000
+#     model.save(os.path.join(ckp_dir, exp_name))
 
-# Train and eval more frequently
-eval_callback = EvalCallback(
-    eval_env, 
-    best_model_save_path=ckp_dir+'/'+exp_name,
-    log_path=ckp_dir+'/'+exp_name,
-    n_eval_episodes=1000,
-    eval_freq=10_000,
-    deterministic=True, render=False)
+# Train and evaluate => looking for the best model
+for _ in range(500):
+    model.learn(
+        total_timesteps=1000, log_interval=10, progress_bar=True, reset_num_timesteps=False,
+        tb_log_name=exp_name)
+    cur_step += 1000
+    model.save(os.path.join(ckp_dir, exp_name))
 
-model.learn(
-    total_timesteps=2_500_000, log_interval=100, progress_bar=True, reset_num_timesteps=False,
-    callback=eval_callback,
-    tb_log_name=exp_name)
+    # Evaluate the trained model
+    print("Timesteps:",  model.num_timesteps)
+    print("Cur steps",  cur_step)
+    score = evaluate_policy(model, eval_env, 1000)
+    model.logger.record('eval/success_rate', score)
+    model.logger.dump(model.num_timesteps)
+    # writer.add_scalar('eval/success_rate', score, cur_step)
+
+    print(f"Eval Success rate: {score}")
+    if best_score is None or score > best_score:
+        best_score = score
+        model.save(os.path.join(best_ckp_dir, exp_name))
+
+# writer.close()
