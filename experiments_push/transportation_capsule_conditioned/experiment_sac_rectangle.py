@@ -3,7 +3,7 @@ import sys
 sys.path.append('../..')
 
 from research_envs.b2PushWorld.TransportationPoseWorld import TransportationWorldConfig
-from research_envs.envs.transportation_pose_capsule_conditioned_env import TransportationEnvConfig, TransportationMixEnv
+from research_envs.envs.transportation_position_capsule_conditioned_env import TransportationEnvConfig, TransportationMixEnv
 from research_envs.envs.obstacle_repo import obstacle_l_dict
 from stable_baselines3 import SAC
 
@@ -25,16 +25,16 @@ config = TransportationEnvConfig(
         agent_type = 'continuous',
         max_force_length=5.0,
         min_force_length=0.1,
-        goal_tolerance={'pos':2, 'angle':np.pi/18},
+        goal_tolerance={'pos':3, 'angle':np.pi},
         max_obj_dist=10.0
     ),
     max_steps = 500,
-    previous_obs_queue_len = 0,
+    previous_obs_queue_len = 3,
     reward_scale=10.0,
     corridor_width_range = (10.0, 20.0)
 )
 
-exp_name = 'pos_tol_2_angle_pi18_corridor_10_20_reward_scale_10_success_1_death_1_nn_3x256'
+exp_name = 'pos_tol_3_angle_pi_corridor_10_20_reward_scale_10_success_1_death_1_nn_3x256_prev_act_3_rectangle'
 
 obs_l_dict = {
     k: obstacle_l_dict[k] 

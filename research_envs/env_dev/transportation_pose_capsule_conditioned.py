@@ -98,47 +98,36 @@ def render():
 if __name__ == "__main__":
     scene_buffer = CvDrawBuffer(window_name="Simulation", resolution=(1024,1024))
 
+    # obj_desc = {
+    #     'name': 'MultiPolygons',
+    #     'poly_vertices_l': [
+    #         [[2.23606797749979, -4.47213595499958],
+    #         [2.23606797749979, 4.47213595499958],
+    #         [-2.23606797749979, 4.47213595499958],
+    #         [-2.23606797749979, -4.47213595499958]]
+    #     ]
+    # }
+    obj_desc = {
+        'name': 'MultiPolygons',
+        'poly_vertices_l': [
+            [[-0.2583535923246873, -3.247873787392744],
+        [-0.2583535923246873, 3.247873787392744],
+        [-2.6942588844721547, 3.247873787392744],
+        [-2.6942588844721547, -3.247873787392744]],
+        [[3.8014884967249705, -3.247873787392744],
+        [3.8014884967249705, -1.623936893696372],
+        [-0.2583535923246873, -1.623936893696372],
+        [-0.2583535923246873, -3.247873787392744]],
+        [[3.8014884967249705, 1.623936893696372],
+        [3.8014884967249705, 3.247873787392744],
+        [-0.2583535923246873, 3.247873787392744],
+        [-0.2583535923246873, 1.623936893696372]]
+        ]
+    }
     config = TransportationEnvConfig(
         world_config= TransportationWorldConfig(
             obstacle_l = [],
-            object_l=[
-                # {'name':'Circle', 'radius':4.0},
-                # Triangle using PolygonalObj:
-                {'name': 'Polygon', 'vertices':[[-4, -2], [4, -2], [0, 6]]},
-                # {'name': 'Polygon', 'vertices':[[0, 0], [6, 9], [16, 0]]},
-                # {'name': 'Rectangle', 'height': 10.0, 'width': 5.0}
-                # {'name': 'ConcavePolygon', 'vertices':[[-4, -2], [4, -2], [4, 6], [2, 6], [2, 2], [-4, 2]]}
-                # {'name': 'MultiPolygons', 'poly_vertices_l':[[[0, 0], [0, 4], [12, 4], [12, 0]], [[0, 4], [0, 8], [4, 8], [4,4]]]}
-                # {'name': 'MultiPolygons', 'poly_vertices_l':[
-                #     [[0, 0], [0, 3], [6, 3], [3, 0]], 
-                #     [[0, 3], [0, 6], [3, 3]],
-
-                #     [[0, 0], [0, 3], [-6, 3], [-3, 0]], 
-                #     [[0, 3], [0, 6], [-3, 3]],
-
-                #     [[0, 0], [0, -3], [6, -3], [3, 0]], 
-                #     [[0, -3], [0, -6], [3, -3]],
-
-                #     [[0, 0], [0, -3], [-6, -3], [-3, 0]], 
-                #     [[0, -3], [0, -6], [-3, -3]],
-                #     ]}
-                # Bizzarrer shape
-                # {'name': 'MultiPolygons', 'poly_vertices_l':[
-                #     [[0, 0], [0, 4], [2, 4], [4, 2], [4, 0]],
-                #     [[0, 0], [0, 2], [-6, 2], [-6, 0]],
-                #     [[0, 0], [-4, -6], [0, -4]],
-
-                #     [[0, 0], [0, -4], [4, -4]],
-                #     [[0, 0], [2, -2], [4, 0]]
-                # ]}
-                # Tentacle
-                # {
-                #     'name': 'MultiPolygons',
-                #     'poly_vertices_l': json.load(
-                #         open('research_envs/obj_utils/polygons/tentacle_multi.json', 'r')
-                #     )['polygons']
-                # }
-            ],
+            object_l=[obj_desc],
             n_rays = 0,
             agent_type = 'continuous',
             max_force_length=1.0,
@@ -160,6 +149,8 @@ if __name__ == "__main__":
     env = TransportationMixEnv(config, obs_l_dict)
 
     print('Env created.')
+
+    print('Obj radius: ', env.cur_env.world.obj.obj_radius)
     
     acc_reward = 0.0
     render()

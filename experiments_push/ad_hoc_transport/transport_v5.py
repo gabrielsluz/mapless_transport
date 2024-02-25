@@ -468,7 +468,7 @@ print(object_desc)
 
 config = TransportationEnvConfig(
     world_config= TransportationWorldConfig(
-        obstacle_l = obstacle_l_dict['four_circles_120x120'],
+        obstacle_l = obstacle_l_dict['parallel_walls_120x120'],
         object_l=[
             object_desc
             ],

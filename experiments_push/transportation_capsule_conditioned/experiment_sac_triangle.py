@@ -25,7 +25,7 @@ config = TransportationEnvConfig(
         agent_type = 'continuous',
         max_force_length=5.0,
         min_force_length=0.1,
-        goal_tolerance={'pos':3, 'angle':np.pi},
+        goal_tolerance={'pos':2, 'angle':np.pi/18},
         max_obj_dist=10.0
     ),
     max_steps = 500,
@@ -34,7 +34,7 @@ config = TransportationEnvConfig(
     corridor_width_range = (10.0, 20.0)
 )
 
-exp_name = 'pos_tol_3_angle_pi_corridor_10_20_reward_scale_10_success_1_death_1_nn_3x256_triangle'
+exp_name = 'pos_tol_2_angle_pi18_corridor_10_20_reward_scale_10_success_1_death_1_nn_3x256_triangle'
 
 obs_l_dict = {
     k: obstacle_l_dict[k] 

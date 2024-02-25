@@ -76,7 +76,7 @@ def render():
     cv2.waitKey(100)
 
 # object_desc = {'name': 'Rectangle', 'height': 10.0, 'width': 5.0}
-object_desc = {'name': 'Polygon', 'vertices':[[-4, -2], [4, -2], [0, 6]]}
+# object_desc = {'name': 'Polygon', 'vertices':[[-4, -2], [4, -2], [0, 6]]}
 # object_desc = {
 #     'name': 'MultiPolygons', 'poly_vertices_l':[
 #     [[0, 0], [0, 4], [2, 4], [4, 2], [4, 0]],
@@ -86,6 +86,13 @@ object_desc = {'name': 'Polygon', 'vertices':[[-4, -2], [4, -2], [0, 6]]}
 #     [[0, 0], [0, -4], [4, -4]],
 #     [[0, 0], [2, -2], [4, 0]]]
 # }
+object_desc = {
+    'name': 'MultiPolygons',
+    'poly_vertices_l': [
+        [[0, 8], [0, 0], [3, 0], [3, 8]],
+        [[3, 3], [3, 0], [8, 0], [8, 3]]
+    ]
+}
 print(object_desc)
 
 config = TransportationEnvConfig(
@@ -107,7 +114,7 @@ config = TransportationEnvConfig(
     corridor_width_range = (12.0, 12.0)
 )
 env = TransportationEnv(config)
-exp_name = 'pos_tol_2_angle_pi18_corridor_10_20_reward_scale_10_success_1_death_1_nn_3x256_triangle'
+exp_name = 'pos_tol_2_angle_pi18_corridor_10_20_reward_scale_10_success_1_death_1_nn_3x256_L'
 model = SAC.load('model_ckp/' + exp_name)
 print(model.policy)
 
