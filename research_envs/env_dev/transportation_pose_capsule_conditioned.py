@@ -5,6 +5,7 @@ sys.path.append('.')
 from research_envs.b2PushWorld.TransportationPoseWorld import TransportationWorldConfig
 from research_envs.envs.transportation_pose_capsule_conditioned_env import TransportationEnvConfig, TransportationEnv, TransportationMixEnv
 from research_envs.envs.obstacle_repo import obstacle_l_dict
+from research_envs.envs.object_repo import object_desc_dict
 from research_envs.cv_buffer.CvDrawBuffer import CvDrawBuffer
 
 import cv2
@@ -97,50 +98,10 @@ def render():
 
 if __name__ == "__main__":
     scene_buffer = CvDrawBuffer(window_name="Simulation", resolution=(1024,1024))
-
-    # obj_desc = {
-    #     'name': 'MultiPolygons',
-    #     'poly_vertices_l': [
-    #         [[2.23606797749979, -4.47213595499958],
-    #         [2.23606797749979, 4.47213595499958],
-    #         [-2.23606797749979, 4.47213595499958],
-    #         [-2.23606797749979, -4.47213595499958]]
-    #     ]
-    # }
-    obj_desc = {
-    'name': 'MultiPolygons', 'poly_vertices_l':[[[4.47213595499958, 2.23606797749979],
-  [0.0, 2.23606797749979],
-  [0.0, 0.0],
-  [2.23606797749979, 0.0]],
- [[2.23606797749979, 2.23606797749979],
-  [0.0, 4.47213595499958],
-  [0.0, 2.23606797749979]],
- [[0.0, 0.0],
-  [0.0, 2.23606797749979],
-  [-4.47213595499958, 2.23606797749979],
-  [-2.23606797749979, 0.0]],
- [[0.0, 2.23606797749979],
-  [0.0, 4.47213595499958],
-  [-2.23606797749979, 2.23606797749979]],
- [[4.47213595499958, -2.23606797749979],
-  [2.23606797749979, 0.0],
-  [0.0, 0.0],
-  [0.0, -2.23606797749979]],
- [[2.23606797749979, -2.23606797749979],
-  [0.0, -2.23606797749979],
-  [0.0, -4.47213595499958]],
- [[0.0, -2.23606797749979],
-  [0.0, 0.0],
-  [-2.23606797749979, 0.0],
-  [-4.47213595499958, -2.23606797749979]],
- [[0.0, -4.47213595499958],
-  [0.0, -2.23606797749979],
-  [-2.23606797749979, -2.23606797749979]]]
-}
     config = TransportationEnvConfig(
         world_config= TransportationWorldConfig(
             obstacle_l = [],
-            object_l=[obj_desc],
+            object_l=[object_desc_dict[5]],
             n_rays = 0,
             agent_type = 'continuous',
             max_force_length=1.0,
