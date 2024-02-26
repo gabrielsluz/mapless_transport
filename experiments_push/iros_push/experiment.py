@@ -55,7 +55,7 @@ eval_env_config = TransportationEnvConfig(
         goal_tolerance={'pos':2, 'angle':np.pi/18},
         max_obj_dist=10.0
     ),
-    max_steps = 100,
+    max_steps = 150,
     previous_obs_queue_len = 0,
     reward_scale=10.0,
     corridor_width_range = (10.0, 20.0)
