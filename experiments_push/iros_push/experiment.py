@@ -101,6 +101,6 @@ eval_callback = EvalCallback(
     deterministic=True, render=False)
 
 model.learn(
-    total_timesteps=2_500_000, log_interval=100, progress_bar=True, reset_num_timesteps=False,
+    total_timesteps=1_500_000, log_interval=100, progress_bar=True, reset_num_timesteps=False,
     callback=eval_callback,
     tb_log_name=exp_name)
