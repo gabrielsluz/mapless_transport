@@ -202,9 +202,9 @@ class MultiPolygonsObj:
             cv2.fillPoly(image, [np.array(vertices)], color)
         
         # Aux:
-        v = body.worldCenter
-        v = self.worldToScreen(v, pixels_per_meter)
-        cv2.circle(image, v, 10, (1, 0, 0, 0), 5)
+        # v = body.worldCenter
+        # v = self.worldToScreen(v, pixels_per_meter)
+        # cv2.circle(image, v, 10, (1, 0, 0, 0), 5)
 
     def DrawInPos(self, screen_pos, pixels_per_meter, image, color, thickness):
         body = self.obj_rigid_body
