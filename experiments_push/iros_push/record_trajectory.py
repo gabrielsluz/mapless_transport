@@ -115,11 +115,11 @@ env.world.object_collided = 0
 
 env.world.goal['pos'].x = 55
 env.world.goal['pos'].y = 25
-env.world.goal['angle'] = 0
+env.world.goal['angle'] = np.deg2rad(40)
 
 env.world.obj = env.world.obj_l[0]
 env.world.obj.obj_rigid_body.position = (15, 25)
-env.world.obj.obj_rigid_body.angle = np.pi
+env.world.obj.obj_rigid_body.angle = np.deg2rad(200)
 
 # env.world.agent.agent_rigid_body.position = (10, 25)
 x_lim = [
@@ -189,19 +189,6 @@ env.world.obj.DrawInPose(
     trajectory[0]['pos'], trajectory[0]['angle'], env.world.pixels_per_meter, screen, (82, 99, 238), -1)
 DrawFirstVerticeInPose(
     env.world.obj, trajectory[0]['pos'], trajectory[0]['angle'], env.world.pixels_per_meter, screen, (36, 21, 0), -1, 10)
-# # Draw an arrow indicating the angle:
-# arrow_length = 2
-# p = trajectory[0]
-# arrow_end = (
-#     p['pos'].x + arrow_length * np.cos(p['angle']),
-#     p['pos'].y + arrow_length * np.sin(p['angle'])
-# )
-# cv2.arrowedLine(
-#     screen,
-#     env.world.worldToScreen(p['pos']),
-#     env.world.worldToScreen(arrow_end),
-#     color=(36, 21, 0), thickness=10
-# )
 
 cv2.circle(
     screen, 
@@ -210,17 +197,54 @@ cv2.circle(
     color=(214, 167, 63), thickness=-1)
 
 # Draw the middle
-# i = len(trajectory)//2
 # Find the middle in terms of distance:
-middle_pos = (env.world.goal['pos'] + trajectory_robot[0]['pos']) / 2
+aux = (env.world.goal['pos'].x - trajectory_robot[0]['pos'].x) / 3
+first_quarter = trajectory_robot[0]['pos'].x + aux
+last_quarter = trajectory_robot[0]['pos'].x + 2*aux
+
+# middle_pos = (env.world.goal['pos'].x + trajectory_robot[0]['pos'].x) / 2
+# # first_quarter = (trajectory_robot[0]['pos'] + trajectory_robot[-1]['pos']) / 4
+# # last_quarter = (trajectory_robot[0]['pos'] + trajectory_robot[-1]['pos']) * 3 / 4
+# first_quarter = (trajectory_robot[0]['pos'].x + middle_pos) / 2
+# last_quarter = (trajectory_robot[-1]['pos'].x + middle_pos) / 2
+
+print('Start: ', trajectory_robot[0]['pos'])
+print('First quarter: ', first_quarter)
+print('Last quarter: ', last_quarter)
+print('Goal: ', env.world.goal['pos'])
 closest_i = 0
 closest_dist = 100000
 for i in range(len(trajectory)):
-    dist = np.linalg.norm(np.array(trajectory[i]['pos']) - np.array(middle_pos))
+    #dist = np.linalg.norm(np.array(trajectory[i]['pos']) - np.array(first_quarter))
+    dist = abs(trajectory[i]['pos'].x - first_quarter)
     if dist < closest_dist:
         closest_dist = dist
         closest_i = i
 i = closest_i
+
+print('I =', i)
+env.world.obj.DrawInPose(
+    trajectory[i]['pos'], trajectory[i]['angle'], env.world.pixels_per_meter, screen, (82, 99, 238), -1)
+DrawFirstVerticeInPose(
+    env.world.obj, trajectory[i]['pos'], trajectory[i]['angle'], env.world.pixels_per_meter, screen, (36, 21, 0), -1, 10)
+
+cv2.circle(
+    screen, 
+    env.world.worldToScreen(trajectory_robot[i]['pos']), 
+    int(env.world.agent.agent_radius*env.world.pixels_per_meter), 
+    color=(214, 167, 63), thickness=-1)
+
+# Last quarter
+closest_i = 0
+closest_dist = 100000
+for i in range(len(trajectory)):
+    # dist = np.linalg.norm(np.array(trajectory[i]['pos']) - np.array(last_quarter))
+    dist = abs(trajectory[i]['pos'].x - last_quarter)
+    if dist < closest_dist:
+        closest_dist = dist
+        closest_i = i
+i = closest_i
+print('I =', i)
 env.world.obj.DrawInPose(
     trajectory[i]['pos'], trajectory[i]['angle'], env.world.pixels_per_meter, screen, (82, 99, 238), -1)
 DrawFirstVerticeInPose(
@@ -238,31 +262,32 @@ env.world.obj.DrawInPose(
 DrawFirstVerticeInPose(
     env.world.obj, env.world.goal['pos'], env.world.goal['angle'], env.world.pixels_per_meter, screen, (36, 21, 0), -1, 10)
 
-cv2.circle(
-    screen, 
-    env.world.worldToScreen(trajectory_robot[-1]['pos']), 
-    int(env.world.agent.agent_radius*env.world.pixels_per_meter), 
-    color=(214, 167, 63), thickness=-1)
+# cv2.circle(
+#     screen, 
+#     env.world.worldToScreen(trajectory_robot[-1]['pos']), 
+#     int(env.world.agent.agent_radius*env.world.pixels_per_meter), 
+#     color=(214, 167, 63), thickness=-1)
 
 # Draw the trajectory as a curve
 c = (36, 21, 0)
+thickness = 2
 for i in range(len(trajectory)):
     if i == 0 or i == len(trajectory)-1: continue
     cv2.line(
         screen, 
         env.world.worldToScreen(trajectory[i-1]['pos']), 
         env.world.worldToScreen(trajectory[i]['pos']), 
-        color=c, thickness=2)
+        color=c, thickness=thickness)
 cv2.line(
     screen, 
     env.world.worldToScreen(trajectory[-2]['pos']), 
     env.world.worldToScreen(trajectory[-1]['pos']), 
-    color=c, thickness=2)
+    color=c, thickness=thickness)
 cv2.line(
     screen, 
     env.world.worldToScreen(trajectory[-1]['pos']), 
     env.world.worldToScreen(env.world.goal['pos']), 
-    color=c, thickness=2)
+    color=c, thickness=thickness)
 print(screen.shape)
 
 def DrawInPose(self, world_pos, angle, pixels_per_meter, image, color, thickness):
