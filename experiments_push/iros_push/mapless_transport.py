@@ -496,17 +496,19 @@ sg_corridor_width_l = []
 stuck_cnt = 5
 obj_pos_deque = deque(maxlen=stuck_cnt)
 
+map_obs = obstacle_l_dict['mapless_2_corr_30']
+
 config = TransportationEnvConfig(
     world_config= TransportationWorldConfig(
-        obstacle_l = obstacle_l_dict['square_middle_corr_20']['obstacles'],
+        obstacle_l = map_obs['obstacles'],
         object_l=[object_desc_dict[obj_id]],
         n_rays = 72,
         range_max = 25.0,
         agent_type = 'continuous',
         max_force_length=5.0,
         min_force_length=0.1,
-        width=obstacle_l_dict['square_middle_corr_20']['width'],
-        height=obstacle_l_dict['square_middle_corr_20']['height'],
+        width=map_obs['width'],
+        height=map_obs['height'],
         goal_tolerance={'pos':2, 'angle':np.pi/18},
         max_obj_dist=10.0
     ),
