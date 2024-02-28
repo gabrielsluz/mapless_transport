@@ -21,6 +21,8 @@ import numpy as np
 import types
 from collections import deque
 
+from tqdm import tqdm
+
 
 """
 Ad Hoc Navigation
@@ -444,16 +446,16 @@ def drawPretty(self):
 #     cv2.waitKey(50)
 
 
-def save_video(frame_l):
-    global video_counter
-    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-    f_name = 'videos/video_' + str(video_counter) + '.mp4'
-    out = cv2.VideoWriter(f_name, fourcc, 20, (frame_l[0].shape[1], frame_l[0].shape[0]))
-    for frame in frame_l:
-        frame = frame.astype(np.uint8)
-        out.write(frame)
-    out.release()
-    video_counter += 1
+# def save_video(frame_l):
+#     global video_counter
+#     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+#     f_name = 'videos/video_' + str(video_counter) + '.mp4'
+#     out = cv2.VideoWriter(f_name, fourcc, 20, (frame_l[0].shape[1], frame_l[0].shape[0]))
+#     for frame in frame_l:
+#         frame = frame.astype(np.uint8)
+#         out.write(frame)
+#     out.release()
+#     video_counter += 1
 
 
 # MAIN    
@@ -462,8 +464,8 @@ obj_id = int(sys.argv[1])
 exp_name = 'obj_' + str(obj_id)
 
 # Parameters
-corridor_width = 11.0
-corridor_width_for_robot = 12.0
+corridor_width = 8.5
+corridor_width_for_robot = 10.0
 max_corridor_width = corridor_width
 obj_goal_init_slack = corridor_width# * 1.1
 # Only evaluates laser rays in the direction of the candidate plus/minus this angle
@@ -498,15 +500,15 @@ obj_pos_deque = deque(maxlen=stuck_cnt)
 
 config = TransportationEnvConfig(
     world_config= TransportationWorldConfig(
-        obstacle_l = obstacle_l_dict['parallel_walls_corr_25_89x89'],
+        obstacle_l = obstacle_l_dict['parallel_walls_corr_20_74x74'],
         object_l=[object_desc_dict[obj_id]],
         n_rays = 72,
         range_max = 25.0,
         agent_type = 'continuous',
         max_force_length=5.0,
         min_force_length=0.1,
-        width=89.0,
-        height=89.0,
+        width=74.0,
+        height=74.0,
         goal_tolerance={'pos':2, 'angle':np.pi/18},
         max_obj_dist=10.0
     ),
@@ -529,66 +531,76 @@ model = SAC.load('model_ckp/'+exp_name+'/best_model')
 scene_buffer = CvDrawBuffer(window_name="Simulation", resolution=(1024,1024))
 frame_l = []
 video_counter = 0
+render_bool = False
 
-render()
+eval_episodes = 200
+
+if render_bool: render()
 obs, info = env.reset()
 reset_macro_env()
 acc_reward = 0
 success_l = []
-while True:
-    # Update subgoal
-    if check_subgoal_sucess(env): micro_env_steps = 0
-    if not sg_is_valid: micro_env_steps  = 0
-    if micro_env_steps % micro_env_max_steps == 0:
-        obj_pos = np.array(
+
+for _ in tqdm(range(eval_episodes)):
+    done = False
+    while not done:
+        # Update subgoal
+        if check_subgoal_sucess(env): micro_env_steps = 0
+        if not sg_is_valid: micro_env_steps  = 0
+        if micro_env_steps % micro_env_max_steps == 0:
+            obj_pos = np.array(
+                [env.world.obj.obj_rigid_body.position.x, env.world.obj.obj_rigid_body.position.y]
+            )
+            trajectory_memory.add(obj_pos)
+            min_sg, sg_is_valid = find_best_subgoal()
+            set_new_goal(env, new_goal={'pos':b2Vec2(min_sg), 'angle': compute_best_angle(min_sg)})
+            micro_env_steps = 0
+        micro_env_steps += 1
+
+        # Take action
+        # If the object is stuck, move towards it
+        obj_stuck = False
+        obj_pos_deque.append(np.array(
             [env.world.obj.obj_rigid_body.position.x, env.world.obj.obj_rigid_body.position.y]
-        )
-        trajectory_memory.add(obj_pos)
-        min_sg, sg_is_valid = find_best_subgoal()
-        set_new_goal(env, new_goal={'pos':b2Vec2(min_sg), 'angle': compute_best_angle(min_sg)})
-        micro_env_steps = 0
-    micro_env_steps += 1
+        ))
+        if len(obj_pos_deque) == stuck_cnt:
+            if np.linalg.norm(obj_pos_deque[0] - obj_pos_deque[-1]) < 0.1:
+                obj_stuck = True
 
-    # Take action
-    # If the object is stuck, move towards it
-    obj_stuck = False
-    obj_pos_deque.append(np.array(
-        [env.world.obj.obj_rigid_body.position.x, env.world.obj.obj_rigid_body.position.y]
-    ))
-    if len(obj_pos_deque) == stuck_cnt:
-        if np.linalg.norm(obj_pos_deque[0] - obj_pos_deque[-1]) < 0.1:
-            obj_stuck = True
+        if obj_stuck:
+            agent_to_obj = env.world.agent_to_object_vector()
+            angle = np.arctan2(agent_to_obj[1], agent_to_obj[0])
+            # print('Stuck')
+            if angle < 0: angle += 2*np.pi
+            action = np.array([angle / (2*np.pi), 0.5])
+        else:
+            # print('Pose Model')
+            obs = adjust_obs(obs)
+            action, _states = model.predict(obs, deterministic=True)
+        obs, reward, terminated, truncated, info = env.step(action)
+        acc_reward += reward
+        if render_bool: render()
 
-    if obj_stuck:
-        agent_to_obj = env.world.agent_to_object_vector()
-        angle = np.arctan2(agent_to_obj[1], agent_to_obj[0])
-        # print('Stuck')
-        if angle < 0: angle += 2*np.pi
-        action = np.array([angle / (2*np.pi), 0.5])
-    else:
-        # print('Pose Model')
-        obs = adjust_obs(obs)
-        action, _states = model.predict(obs, deterministic=True)
-    obs, reward, terminated, truncated, info = env.step(action)
-    acc_reward += reward
-    render()
+        macro_env_steps += 1
+        if macro_env_steps >= macro_env_max_steps:
+            truncated = True
 
-    macro_env_steps += 1
-    if macro_env_steps >= macro_env_max_steps:
-        truncated = True
+        done = terminated or truncated
 
-    if terminated or truncated:
-        success_l.append(info['is_success'])
-        # Save video
-        if not info['is_success']:
-            save_video(frame_l)
-        # save_video(frame_l)
-        frame_l = []
+        if done:
+            success_l.append(info['is_success'])
 
-        obs, info = env.reset()
-        reset_macro_env()
+            obs, info = env.reset()
+            reset_macro_env()
 
-        print('Reward: ', acc_reward)
-        acc_reward = 0
-        print('Success rate: ', sum(success_l) / len(success_l))
+            # print('Reward: ', acc_reward)
+            acc_reward = 0
+            # print('Success rate: ', sum(success_l) / len(success_l))
+
+print(exp_name + ' ' + str(sum(success_l) / len(success_l)))
+
+# Save results to a file - append to the end
+with open('results_mapless.txt', 'a') as f:
+    f.write(exp_name + ' ' + str(sum(success_l) / len(success_l)) + '\n')
+    f.close()
 

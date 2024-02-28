@@ -50,7 +50,7 @@ def adjusted_world_reset(self):
     # self.obj.obj_rigid_body.position = self.gen_non_overlapping_position(
     #     obj_goal_init_slack)
     # self.obj.obj_rigid_body.angle = random.uniform(0, 2*np.pi)
-    self.obj.obj_rigid_body.position = (20, 100)
+    self.obj.obj_rigid_body.position = (12.5, 64.5)
     self.obj.obj_rigid_body.angle = random.uniform(0, 2*np.pi)
 
     x_lim = [
@@ -65,8 +65,8 @@ def adjusted_world_reset(self):
         self.agent.agent_radius*1.2, x_lim, y_lim)
 
     sampled_pos = self.gen_non_overlapping_position(obj_goal_init_slack)
-    self.goal['pos'].x = 100
-    self.goal['pos'].y = 20
+    self.goal['pos'].x = 64.5
+    self.goal['pos'].y = 12.5
     self.goal['angle'] = random.uniform(0, 2*np.pi)
 
 def adjusted_check_death(self):
@@ -464,9 +464,9 @@ obj_id = int(sys.argv[1])
 exp_name = 'obj_' + str(obj_id)
 
 # Parameters
-corridor_width = 13.0
+corridor_width = 9.0
 max_corridor_width = corridor_width
-obj_goal_init_slack = corridor_width * 1.1
+obj_goal_init_slack = corridor_width #* 1.1
 # Only evaluates laser rays in the direction of the candidate plus/minus this angle
 laser_angle_range = np.pi/2
 
@@ -502,15 +502,15 @@ obj_pos_deque = deque(maxlen=stuck_cnt)
 
 config = TransportationEnvConfig(
     world_config= TransportationWorldConfig(
-        obstacle_l = obstacle_l_dict['parallel_walls_120x120'],
+        obstacle_l = obstacle_l_dict['parallel_walls_77x77'],
         object_l=[object_desc_dict[obj_id]],
         n_rays = 72,
         range_max = 25.0,
         agent_type = 'continuous',
         max_force_length=5.0,
         min_force_length=0.1,
-        width=122.0,
-        height=122.0,
+        width=77.0,
+        height=77.0,
         goal_tolerance={'pos':2, 'angle':np.pi/18},
         max_obj_dist=10.0
     ),
