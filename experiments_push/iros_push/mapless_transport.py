@@ -498,15 +498,15 @@ obj_pos_deque = deque(maxlen=stuck_cnt)
 
 config = TransportationEnvConfig(
     world_config= TransportationWorldConfig(
-        obstacle_l = obstacle_l_dict['parallel_walls_corr_25_89x89'],
+        obstacle_l = obstacle_l_dict['square_middle_corr_20']['obstacles'],
         object_l=[object_desc_dict[obj_id]],
         n_rays = 72,
         range_max = 25.0,
         agent_type = 'continuous',
         max_force_length=5.0,
         min_force_length=0.1,
-        width=89.0,
-        height=89.0,
+        width=obstacle_l_dict['square_middle_corr_20']['width'],
+        height=obstacle_l_dict['square_middle_corr_20']['height'],
         goal_tolerance={'pos':2, 'angle':np.pi/18},
         max_obj_dist=10.0
     ),

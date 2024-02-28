@@ -464,14 +464,14 @@ obj_id = int(sys.argv[1])
 exp_name = 'obj_' + str(obj_id)
 
 # Parameters
-corridor_width = 11.5
-corridor_width_for_robot = 11.5
+corridor_width = 12.0
+corridor_width_for_robot = 12.0
 max_corridor_width = corridor_width
 obj_goal_init_slack = corridor_width# * 1.1
 # Only evaluates laser rays in the direction of the candidate plus/minus this angle
 laser_angle_range = np.pi/2
 
-macro_env_max_steps = 1000
+macro_env_max_steps = 2000
 macro_env_steps = 0
 final_goal = None
 
@@ -500,15 +500,15 @@ obj_pos_deque = deque(maxlen=stuck_cnt)
 
 config = TransportationEnvConfig(
     world_config= TransportationWorldConfig(
-        obstacle_l = obstacle_l_dict['square_middle_corr_25_84x84'],
+        obstacle_l = obstacle_l_dict['mapless_1_200x140'],
         object_l=[object_desc_dict[obj_id]],
         n_rays = 72,
         range_max = 25.0,
         agent_type = 'continuous',
         max_force_length=5.0,
         min_force_length=0.1,
-        width=84.0,
-        height=84.0,
+        width=200.0,
+        height=140.0,
         goal_tolerance={'pos':2, 'angle':np.pi/18},
         max_obj_dist=10.0
     ),
@@ -540,6 +540,8 @@ obs, info = env.reset()
 reset_macro_env()
 acc_reward = 0
 success_l = []
+truncated_l = []
+collision_l = []
 
 for _ in tqdm(range(eval_episodes)):
     done = False
@@ -589,6 +591,8 @@ for _ in tqdm(range(eval_episodes)):
 
         if done:
             success_l.append(info['is_success'])
+            truncated_l.append(truncated)
+            collision_l.append(env.world.did_agent_collide() or env.world.did_object_collide())
 
             obs, info = env.reset()
             reset_macro_env()
@@ -599,8 +603,11 @@ for _ in tqdm(range(eval_episodes)):
 
 print(exp_name + ' ' + str(sum(success_l) / len(success_l)))
 
+print('Truncated: ', sum(truncated_l) / len(truncated_l))
+print('Collision: ', sum(collision_l) / len(collision_l))
+
 # Save results to a file - append to the end
-with open('results_mapless.txt', 'a') as f:
-    f.write(exp_name + ' ' + str(sum(success_l) / len(success_l)) + '\n')
-    f.close()
+# with open('results_mapless.txt', 'a') as f:
+#     f.write(exp_name + ' ' + str(sum(success_l) / len(success_l)) + '\n')
+#     f.close()
 
