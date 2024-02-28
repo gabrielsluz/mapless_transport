@@ -462,8 +462,8 @@ obj_id = int(sys.argv[1])
 exp_name = 'obj_' + str(obj_id)
 
 # Parameters
-corridor_width = 11.0
-corridor_width_for_robot = 12.0
+corridor_width = 11.5
+corridor_width_for_robot = 11.5
 max_corridor_width = corridor_width
 obj_goal_init_slack = corridor_width# * 1.1
 # Only evaluates laser rays in the direction of the candidate plus/minus this angle

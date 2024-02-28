@@ -1,4 +1,4 @@
-echo "parallel_walls_corr_20_74x74" >> results_mapless.txt
+echo "square_middle_corr_25_84x84" >> results_mapless.txt
 python mapless_transport_eval.py 0
 python mapless_transport_eval.py 1
 python mapless_transport_eval.py 2

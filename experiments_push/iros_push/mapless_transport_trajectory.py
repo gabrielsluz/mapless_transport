@@ -50,7 +50,7 @@ def adjusted_world_reset(self):
     # self.obj.obj_rigid_body.position = self.gen_non_overlapping_position(
     #     obj_goal_init_slack)
     # self.obj.obj_rigid_body.angle = random.uniform(0, 2*np.pi)
-    self.obj.obj_rigid_body.position = (12.5, 64.5)
+    self.obj.obj_rigid_body.position = (12.5, 64.0)
     self.obj.obj_rigid_body.angle = random.uniform(0, 2*np.pi)
 
     x_lim = [
@@ -65,7 +65,7 @@ def adjusted_world_reset(self):
         self.agent.agent_radius*1.2, x_lim, y_lim)
 
     sampled_pos = self.gen_non_overlapping_position(obj_goal_init_slack)
-    self.goal['pos'].x = 64.5
+    self.goal['pos'].x = 64.0
     self.goal['pos'].y = 12.5
     self.goal['angle'] = random.uniform(0, 2*np.pi)
 
@@ -464,7 +464,8 @@ obj_id = int(sys.argv[1])
 exp_name = 'obj_' + str(obj_id)
 
 # Parameters
-corridor_width = 9.0
+corridor_width = 8.5
+corridor_width_for_robot = 10.0
 max_corridor_width = corridor_width
 obj_goal_init_slack = corridor_width #* 1.1
 # Only evaluates laser rays in the direction of the candidate plus/minus this angle
@@ -502,22 +503,22 @@ obj_pos_deque = deque(maxlen=stuck_cnt)
 
 config = TransportationEnvConfig(
     world_config= TransportationWorldConfig(
-        obstacle_l = obstacle_l_dict['parallel_walls_77x77'],
+        obstacle_l = obstacle_l_dict['parallel_walls_corr_20_74x74'],
         object_l=[object_desc_dict[obj_id]],
         n_rays = 72,
         range_max = 25.0,
         agent_type = 'continuous',
         max_force_length=5.0,
         min_force_length=0.1,
-        width=77.0,
-        height=77.0,
+        width=74.0,
+        height=74.0,
         goal_tolerance={'pos':2, 'angle':np.pi/18},
         max_obj_dist=10.0
     ),
     max_steps = 100,
     previous_obs_queue_len = 0,
     reward_scale=10.0,
-    corridor_width_range = (corridor_width, corridor_width)
+    corridor_width_range = (corridor_width_for_robot, corridor_width_for_robot)
 )
 
 env = TransportationEnv(config)
@@ -624,7 +625,7 @@ for obs in env.world.obstacle_l:
 draw_obj_and_robot(screen, obj_trajectory[0], robot_trajectory[0])
 
 # Draw parts of the trajectory
-dist_gap = 30.0
+dist_gap = 20.0
 last_pos = obj_trajectory[0]['pos']
 for i in range(1, len(obj_trajectory)):
     if (obj_trajectory[i]['pos'] - last_pos).length > dist_gap:

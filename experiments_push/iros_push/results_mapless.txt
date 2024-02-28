@@ -1,33 +1,33 @@
-square_middle_corr_20_84x84
-obj_0 0.81
-obj_1 0.835
-obj_2 0.82
-obj_3 0.82
-obj_4 0.89
-obj_5 0.935
-obj_6 0.915
-obj_7 0.855
-obj_8 0.87
-obj_9 0.845
-four_squares_corr_20_104x104
-obj_0 0.785
-obj_1 0.825
-obj_2 0.855
-obj_3 0.87
-obj_4 0.835
-obj_5 0.91
-obj_6 0.93
-obj_7 0.875
-obj_8 0.82
-obj_9 0.87
-parallel_walls_corr_20_74x74
-obj_0 0.665
-obj_1 0.66
-obj_2 0.62
-obj_3 0.72
-obj_4 0.66
-obj_5 0.885
-obj_6 0.835
-obj_7 0.75
-obj_8 0.725
-obj_9 0.695
+parallel_walls_corr_25_89x89
+obj_0 0.975
+obj_1 0.96
+obj_2 0.955
+obj_4 0.975
+obj_5 0.99
+obj_6 0.985
+obj_7 0.975
+obj_8 0.99
+obj_9 0.945
+obj_3 0.945
+four_squares_corr_25_104x104
+obj_0 0.99
+obj_1 0.995
+obj_2 0.98
+obj_3 0.99
+obj_4 0.98
+obj_5 0.985
+obj_6 0.99
+obj_7 0.98
+obj_8 0.995
+obj_9 0.99
+square_middle_corr_25_84x84
+obj_0 0.965
+obj_1 0.96
+obj_2 0.985
+obj_3 0.99
+obj_4 0.97
+obj_5 1.0
+obj_6 0.99
+obj_7 0.985
+obj_8 0.985
+obj_9 0.99
