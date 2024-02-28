@@ -462,10 +462,13 @@ def save_video(frame_l):
 ###################### OBJECT ID ######################
 obj_id = int(sys.argv[1])
 exp_name = 'obj_' + str(obj_id)
+map_obs = obstacle_l_dict[sys.argv[2]]
+corridor_width = float(sys.argv[3])
+corridor_width_for_robot = float(sys.argv[4])
 
 # Parameters
-corridor_width = 8.5
-corridor_width_for_robot = 10.0
+# corridor_width = 8.5
+# corridor_width_for_robot = 10.0
 max_corridor_width = corridor_width
 obj_goal_init_slack = corridor_width #* 1.1
 # Only evaluates laser rays in the direction of the candidate plus/minus this angle
@@ -503,15 +506,15 @@ obj_pos_deque = deque(maxlen=stuck_cnt)
 
 config = TransportationEnvConfig(
     world_config= TransportationWorldConfig(
-        obstacle_l = obstacle_l_dict['parallel_walls_corr_20_74x74'],
+        obstacle_l = map_obs['obstacles'],
         object_l=[object_desc_dict[obj_id]],
         n_rays = 72,
         range_max = 25.0,
         agent_type = 'continuous',
         max_force_length=5.0,
         min_force_length=0.1,
-        width=74.0,
-        height=74.0,
+        width=map_obs['width'],
+        height=map_obs['height'],
         goal_tolerance={'pos':2, 'angle':np.pi/18},
         max_obj_dist=10.0
     ),
