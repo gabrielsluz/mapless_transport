@@ -15,6 +15,8 @@ from Box2D import b2Vec2, b2Transform
 
 from stable_baselines3 import SAC
 
+import os
+import pandas as pd
 import random
 import math
 import numpy as np
@@ -131,6 +133,9 @@ def set_new_goal(self, new_goal={'pos':b2Vec2(0,0), 'angle': 0.0}):
         self.world.obj.obj_rigid_body.position, self.corr_line[0], self.corr_line[1])
     
     self.start_obj_pos = b2Vec2(new_start_obj_pos)
+    if (self.world.goal['pos'].x - self.start_obj_pos.x) == 0.0:
+        self.start_obj_pos.x += 0.0001
+        
     self.corr_line = [
         (self.world.goal['pos'].y - self.start_obj_pos.y) / (self.world.goal['pos'].x - self.start_obj_pos.x),
         self.start_obj_pos.y - self.start_obj_pos.x * (self.world.goal['pos'].y - self.start_obj_pos.y) / (self.world.goal['pos'].x - self.start_obj_pos.x)
@@ -462,10 +467,13 @@ def drawPretty(self):
 ###################### OBJECT ID ######################
 obj_id = int(sys.argv[1])
 exp_name = 'obj_' + str(obj_id)
+map_obs = obstacle_l_dict[sys.argv[2]]
+corridor_width = float(sys.argv[3])
+corridor_width_for_robot = float(sys.argv[4])
 
 # Parameters
-corridor_width = 12.0
-corridor_width_for_robot = 12.0
+# corridor_width = 12.0
+# corridor_width_for_robot = 12.0
 max_corridor_width = corridor_width
 obj_goal_init_slack = corridor_width# * 1.1
 # Only evaluates laser rays in the direction of the candidate plus/minus this angle
@@ -500,15 +508,15 @@ obj_pos_deque = deque(maxlen=stuck_cnt)
 
 config = TransportationEnvConfig(
     world_config= TransportationWorldConfig(
-        obstacle_l = obstacle_l_dict['mapless_1_200x140'],
+        obstacle_l = map_obs['obstacles'],
         object_l=[object_desc_dict[obj_id]],
         n_rays = 72,
         range_max = 25.0,
         agent_type = 'continuous',
         max_force_length=5.0,
         min_force_length=0.1,
-        width=200.0,
-        height=140.0,
+        width=map_obs['width'],
+        height=map_obs['height'],
         goal_tolerance={'pos':2, 'angle':np.pi/18},
         max_obj_dist=10.0
     ),
@@ -539,9 +547,13 @@ if render_bool: render()
 obs, info = env.reset()
 reset_macro_env()
 acc_reward = 0
-success_l = []
-truncated_l = []
-collision_l = []
+
+res_d = {
+    'success': [],
+    'truncated': [],
+    'collision': [],
+    'n_steps': []
+}
 
 for _ in tqdm(range(eval_episodes)):
     done = False
@@ -590,9 +602,10 @@ for _ in tqdm(range(eval_episodes)):
         done = terminated or truncated
 
         if done:
-            success_l.append(info['is_success'])
-            truncated_l.append(truncated)
-            collision_l.append(env.world.did_agent_collide() or env.world.did_object_collide())
+            res_d['success'].append(info['is_success'])
+            res_d['truncated'].append(truncated)
+            res_d['collision'].append(env.world.did_agent_collide() or env.world.did_object_collide())
+            res_d['n_steps'].append(macro_env_steps)
 
             obs, info = env.reset()
             reset_macro_env()
@@ -601,13 +614,23 @@ for _ in tqdm(range(eval_episodes)):
             acc_reward = 0
             # print('Success rate: ', sum(success_l) / len(success_l))
 
-print(exp_name + ' ' + str(sum(success_l) / len(success_l)))
+print('Map: ', sys.argv[2])
+print('Object id: ', obj_id)
+print('Corridor width: ', corridor_width)
+print('Corridor width for robot: ', corridor_width_for_robot)
+print('Success: ', sum(res_d['success']) / len(res_d['success']))
+print('Truncated: ', sum(res_d['truncated']) / len(res_d['truncated']))
+print('Collision: ', sum(res_d['collision']) / len(res_d['collision']))
+print('Steps: ', sum(res_d['n_steps']) / len(res_d['n_steps']))
 
-print('Truncated: ', sum(truncated_l) / len(truncated_l))
-print('Collision: ', sum(collision_l) / len(collision_l))
+# Save results to a file
+df = pd.DataFrame(res_d)
+df['obj_id'] = obj_id
+df['map'] = sys.argv[2]
+df['corridor_width'] = corridor_width
+df['corridor_width_for_robot'] = corridor_width_for_robot
 
-# Save results to a file - append to the end
-# with open('results_mapless.txt', 'a') as f:
-#     f.write(exp_name + ' ' + str(sum(success_l) / len(success_l)) + '\n')
-#     f.close()
-
+if not os.path.isfile('results_mapless.csv'):
+    df.to_csv('results_mapless.csv', index=False)
+else:
+    df.to_csv('results_mapless.csv', mode='a', header=False, index=False)

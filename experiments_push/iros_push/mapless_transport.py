@@ -460,10 +460,13 @@ def save_video(frame_l):
 ###################### OBJECT ID ######################
 obj_id = int(sys.argv[1])
 exp_name = 'obj_' + str(obj_id)
+map_obs = obstacle_l_dict[sys.argv[2]]
+corridor_width = float(sys.argv[3])
+corridor_width_for_robot = float(sys.argv[4])
 
 # Parameters
-corridor_width = 11.5
-corridor_width_for_robot = 11.5
+# corridor_width = 11.5
+# corridor_width_for_robot = 11.5
 max_corridor_width = corridor_width
 obj_goal_init_slack = corridor_width# * 1.1
 # Only evaluates laser rays in the direction of the candidate plus/minus this angle
@@ -495,8 +498,6 @@ sg_corridor_width_l = []
 # If the object gets stuck, move towards it.
 stuck_cnt = 5
 obj_pos_deque = deque(maxlen=stuck_cnt)
-
-map_obs = obstacle_l_dict['mapless_2_corr_30']
 
 config = TransportationEnvConfig(
     world_config= TransportationWorldConfig(
