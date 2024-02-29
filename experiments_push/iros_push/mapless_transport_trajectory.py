@@ -50,7 +50,7 @@ def adjusted_world_reset(self):
     # self.obj.obj_rigid_body.position = self.gen_non_overlapping_position(
     #     obj_goal_init_slack)
     # self.obj.obj_rigid_body.angle = random.uniform(0, 2*np.pi)
-    self.obj.obj_rigid_body.position = (12.5, 64.0)
+    self.obj.obj_rigid_body.position = (12.5, 12.5)
     self.obj.obj_rigid_body.angle = random.uniform(0, 2*np.pi)
 
     x_lim = [
@@ -65,8 +65,8 @@ def adjusted_world_reset(self):
         self.agent.agent_radius*1.2, x_lim, y_lim)
 
     sampled_pos = self.gen_non_overlapping_position(obj_goal_init_slack)
-    self.goal['pos'].x = 64.0
-    self.goal['pos'].y = 12.5
+    self.goal['pos'].x = 90.0
+    self.goal['pos'].y = 90.0
     self.goal['angle'] = random.uniform(0, 2*np.pi)
 
 def adjusted_check_death(self):
@@ -542,7 +542,7 @@ video_counter = 0
 robot_trajectory = []
 obj_trajectory = []
 
-render_bool = True
+render_bool = False
 
 if render_bool: render()
 obs, info = env.reset()
