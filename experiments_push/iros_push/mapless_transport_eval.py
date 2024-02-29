@@ -470,6 +470,7 @@ exp_name = 'obj_' + str(obj_id)
 map_obs = obstacle_l_dict[sys.argv[2]]
 corridor_width = float(sys.argv[3])
 corridor_width_for_robot = float(sys.argv[4])
+memory_len = int(sys.argv[5])
 
 # Parameters
 # corridor_width = 12.0
@@ -494,7 +495,7 @@ sg_is_valid = False
 min_sg = None
 
 # Information gain
-trajectory_memory = TrajectoryMemory(min_step_len=2.0, max_step_len=2.0, max_len=300)
+trajectory_memory = TrajectoryMemory(min_step_len=2.0, max_step_len=2.0, max_len=memory_len)
 trajectory_close_enough = 10.0
 min_dist_to_final_goal_for_info_gain = 10.0
 
@@ -623,14 +624,14 @@ print('Truncated: ', sum(res_d['truncated']) / len(res_d['truncated']))
 print('Collision: ', sum(res_d['collision']) / len(res_d['collision']))
 print('Steps: ', sum(res_d['n_steps']) / len(res_d['n_steps']))
 
-# Save results to a file
-df = pd.DataFrame(res_d)
-df['obj_id'] = obj_id
-df['map'] = sys.argv[2]
-df['corridor_width'] = corridor_width
-df['corridor_width_for_robot'] = corridor_width_for_robot
+# # Save results to a file
+# df = pd.DataFrame(res_d)
+# df['obj_id'] = obj_id
+# df['map'] = sys.argv[2]
+# df['corridor_width'] = corridor_width
+# df['corridor_width_for_robot'] = corridor_width_for_robot
 
-if not os.path.isfile('results_mapless.csv'):
-    df.to_csv('results_mapless.csv', index=False)
-else:
-    df.to_csv('results_mapless.csv', mode='a', header=False, index=False)
+# if not os.path.isfile('results_mapless.csv'):
+#     df.to_csv('results_mapless.csv', index=False)
+# else:
+#     df.to_csv('results_mapless.csv', mode='a', header=False, index=False)

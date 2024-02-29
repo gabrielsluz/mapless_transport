@@ -487,7 +487,7 @@ sg_is_valid = False
 min_sg = None
 
 # Information gain
-trajectory_memory = TrajectoryMemory(min_step_len=2.0, max_step_len=2.0, max_len=300)
+trajectory_memory = TrajectoryMemory(min_step_len=2.0, max_step_len=2.0, max_len=100)
 trajectory_close_enough = 10.0
 min_dist_to_final_goal_for_info_gain = 10.0
 

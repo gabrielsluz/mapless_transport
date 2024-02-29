@@ -3,7 +3,7 @@ import sys
 sys.path.append('../..')
 
 from research_envs.b2PushWorld.TransportationPoseWorld import TransportationWorldConfig
-from research_envs.envs.transportation_pose_capsule_conditioned_env import TransportationEnvConfig, TransportationEnv
+from research_envs.envs.transportation_pose_capsule_tolerance_conditioned_env import TransportationEnvConfig, TransportationEnv
 from research_envs.envs.object_repo import object_desc_dict
 
 from stable_baselines3 import SAC
@@ -22,7 +22,7 @@ Output:
 
 ###################### OBJECT ID ######################
 obj_id = int(sys.argv[1])
-exp_name = 'obj_' + str(obj_id)
+exp_name = 'obj_{}'.format(obj_id)
 
 ###################### TRAINING ENVIRONMENT ######################
 config = TransportationEnvConfig(
@@ -33,13 +33,14 @@ config = TransportationEnvConfig(
         agent_type = 'continuous',
         max_force_length=5.0,
         min_force_length=0.1,
-        goal_tolerance={'pos':2, 'angle':np.pi/18},
         max_obj_dist=10.0
     ),
     max_steps = 500,
     previous_obs_queue_len = 0,
     reward_scale=10.0,
-    corridor_width_range = (10.0, 20.0)
+    corridor_width_range = (10.0, 20.0),
+    pos_tolerance_range = (0.5, 4.0),
+    angle_tolerance_range = (np.pi/36, np.pi/9)
 )
 env = TransportationEnv(config)
 
@@ -52,13 +53,14 @@ eval_env_config = TransportationEnvConfig(
         agent_type = 'continuous',
         max_force_length=5.0,
         min_force_length=0.1,
-        goal_tolerance={'pos':2, 'angle':np.pi/18},
         max_obj_dist=10.0
     ),
-    max_steps = 150,
+    max_steps = 200,
     previous_obs_queue_len = 0,
     reward_scale=10.0,
-    corridor_width_range = (10.0, 20.0)
+    corridor_width_range = (10.0, 20.0),
+    pos_tolerance_range = (0.5, 4.0),
+    angle_tolerance_range = (np.pi/36, np.pi/9)
 )
 eval_env = TransportationEnv(eval_env_config)
 
@@ -101,6 +103,6 @@ eval_callback = EvalCallback(
     deterministic=True, render=False)
 
 model.learn(
-    total_timesteps=1_500_000, log_interval=100, progress_bar=True, reset_num_timesteps=False,
+    total_timesteps=2_500_000, log_interval=100, progress_bar=True, reset_num_timesteps=False,
     callback=eval_callback,
     tb_log_name=exp_name)
