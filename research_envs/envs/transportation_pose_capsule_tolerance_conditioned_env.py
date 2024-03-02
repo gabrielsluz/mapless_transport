@@ -21,8 +21,12 @@ class TransportationEnvConfig:
     reward_scale: float = 1.0
     max_goal_dist: float = 50.0
     corridor_width_range: tuple = (10.0, 20.0)
+
     pos_tolerance_range: tuple = (0.5, 4.0)
     angle_tolerance_range: tuple = (np.pi/36, np.pi/6)
+
+    pos_tolerance_norm: float = 4.0
+    angle_tolerance_norm: float = np.pi/6
 
 """
 The agent must push the object to the goal, staying inside the corridor and two circles.
@@ -56,6 +60,8 @@ class TransportationEnv(gym.Env):
         self.corridor_width_range = config.corridor_width_range
         self.pos_tolerance_range = config.pos_tolerance_range
         self.angle_tolerance_range = config.angle_tolerance_range
+        self.pos_tolerance_norm = config.pos_tolerance_norm
+        self.angle_tolerance_norm = config.angle_tolerance_norm
         
         self.reward_scale = config.reward_scale
 
@@ -111,8 +117,8 @@ class TransportationEnv(gym.Env):
 
         # Tolerance obs
         tol_obs = np.array([
-            self.pos_tolerance / self.pos_tolerance_range[1],
-            self.angle_tolerance / self.angle_tolerance_range[1]
+            self.pos_tolerance / self.pos_tolerance_norm,
+            self.angle_tolerance / self.angle_tolerance_norm
         ])
 
         return np.concatenate((start_obs, goal_obs, obj_obs, caps_obs, tol_obs), dtype=np.float32)

@@ -3,7 +3,7 @@ import sys
 sys.path.append('../..')
 
 from research_envs.b2PushWorld.TransportationPoseWorld import TransportationWorldConfig
-from research_envs.envs.transportation_pose_capsule_tolerance_conditioned_env import TransportationEnvConfig, TransportationEnv
+from research_envs.envs.transportation_pose_capsule_conditioned_env import TransportationEnvConfig, TransportationEnv
 from research_envs.envs.object_repo import object_desc_dict
 
 from stable_baselines3 import SAC
@@ -22,7 +22,18 @@ Output:
 
 ###################### OBJECT ID ######################
 obj_id = int(sys.argv[1])
-exp_name = 'obj_{}'.format(obj_id)
+pos_tol = float(sys.argv[2])
+angle_tol = float(sys.argv[3])
+caps_start = int(sys.argv[4])
+caps_end = int(sys.argv[5])
+exp_name = 'obj_{}_pos_tol_{}_angle_tol{}_caps_{}_{}_batch_sz_256'.format(
+    obj_id, 
+    int(100*pos_tol),
+    int(100*angle_tol),
+    caps_start,
+    caps_end
+)
+angle_tol = np.deg2rad(angle_tol)
 
 ###################### TRAINING ENVIRONMENT ######################
 config = TransportationEnvConfig(
@@ -33,14 +44,13 @@ config = TransportationEnvConfig(
         agent_type = 'continuous',
         max_force_length=5.0,
         min_force_length=0.1,
-        max_obj_dist=10.0
+        goal_tolerance={'pos':pos_tol, 'angle':angle_tol},
+        max_obj_dist=8.0
     ),
     max_steps = 500,
     previous_obs_queue_len = 0,
     reward_scale=10.0,
-    corridor_width_range = (10.0, 20.0),
-    pos_tolerance_range = (0.5, 4.0),
-    angle_tolerance_range = (np.pi/36, np.pi/9)
+    corridor_width_range = (float(caps_start), float(caps_end))
 )
 env = TransportationEnv(config)
 
@@ -53,22 +63,23 @@ eval_env_config = TransportationEnvConfig(
         agent_type = 'continuous',
         max_force_length=5.0,
         min_force_length=0.1,
-        max_obj_dist=10.0
+        goal_tolerance={'pos':pos_tol, 'angle':angle_tol},
+        max_obj_dist=8.0
     ),
     max_steps = 200,
     previous_obs_queue_len = 0,
     reward_scale=10.0,
-    corridor_width_range = (10.0, 20.0),
-    pos_tolerance_range = (0.5, 4.0),
-    angle_tolerance_range = (np.pi/36, np.pi/9)
+    corridor_width_range = (float(caps_start), float(caps_end))
 )
 eval_env = TransportationEnv(eval_env_config)
 
 ###################### POLICY ######################
 policy_kwargs = dict(net_arch=[256, 256, 256])
 model = SAC(
-    "MlpPolicy", env,
+    "MlpPolicy", 
+    env,
     policy_kwargs=policy_kwargs,
+    batch_size=256,
     verbose=1, tensorboard_log="./tensorboard_dir/")
 print(model.policy)
 
@@ -88,7 +99,7 @@ eval_callback = EvalCallback(
 
 # Main training loop
 model.learn(
-    total_timesteps=2_500_000, log_interval=100, progress_bar=True, reset_num_timesteps=True,
+    total_timesteps=4_000_000, log_interval=100, progress_bar=True, reset_num_timesteps=True,
     callback=eval_callback,
     tb_log_name=exp_name)
 
@@ -98,11 +109,11 @@ eval_callback = EvalCallback(
     eval_env, 
     best_model_save_path=ckp_dir+'/'+exp_name,
     log_path=ckp_dir+'/'+exp_name,
-    n_eval_episodes=1000,
-    eval_freq=10_000,
+    n_eval_episodes=2_000,
+    eval_freq=5_000,
     deterministic=True, render=False)
 
 model.learn(
-    total_timesteps=2_500_000, log_interval=100, progress_bar=True, reset_num_timesteps=False,
+    total_timesteps=1_000_000, log_interval=100, progress_bar=True, reset_num_timesteps=False,
     callback=eval_callback,
     tb_log_name=exp_name)

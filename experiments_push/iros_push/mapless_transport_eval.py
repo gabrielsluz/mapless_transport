@@ -619,19 +619,21 @@ print('Map: ', sys.argv[2])
 print('Object id: ', obj_id)
 print('Corridor width: ', corridor_width)
 print('Corridor width for robot: ', corridor_width_for_robot)
+print('Memory length: ', memory_len)
 print('Success: ', sum(res_d['success']) / len(res_d['success']))
 print('Truncated: ', sum(res_d['truncated']) / len(res_d['truncated']))
 print('Collision: ', sum(res_d['collision']) / len(res_d['collision']))
 print('Steps: ', sum(res_d['n_steps']) / len(res_d['n_steps']))
 
-# # Save results to a file
-# df = pd.DataFrame(res_d)
-# df['obj_id'] = obj_id
-# df['map'] = sys.argv[2]
-# df['corridor_width'] = corridor_width
-# df['corridor_width_for_robot'] = corridor_width_for_robot
+# Save results to a file
+df = pd.DataFrame(res_d)
+df['obj_id'] = obj_id
+df['map'] = sys.argv[2]
+df['corridor_width'] = corridor_width
+df['corridor_width_for_robot'] = corridor_width_for_robot
+df['memory_len'] = memory_len
 
-# if not os.path.isfile('results_mapless.csv'):
-#     df.to_csv('results_mapless.csv', index=False)
-# else:
-#     df.to_csv('results_mapless.csv', mode='a', header=False, index=False)
+if not os.path.isfile('results_mapless.csv'):
+    df.to_csv('results_mapless.csv', index=False)
+else:
+    df.to_csv('results_mapless.csv', mode='a', header=False, index=False)

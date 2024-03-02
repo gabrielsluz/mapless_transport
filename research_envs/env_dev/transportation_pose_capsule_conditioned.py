@@ -101,18 +101,18 @@ if __name__ == "__main__":
     config = TransportationEnvConfig(
         world_config= TransportationWorldConfig(
             obstacle_l = [],
-            object_l=[object_desc_dict[5]],
+            object_l=[object_desc_dict[0]],
             n_rays = 0,
             agent_type = 'continuous',
             max_force_length=1.0,
             min_force_length=0.0,
-            goal_tolerance={'pos':2, 'angle':np.pi/18},
-            max_obj_dist=10.0,
+            goal_tolerance={'pos':1, 'angle':np.pi/18},
+            max_obj_dist=8.0,
         ),
         max_steps=500,
         previous_obs_queue_len=0,
         reward_scale=1.0,
-        corridor_width_range=(10.0, 20.0)
+        corridor_width_range=(8.0, 8.0)
     )
     obs_l_dict = {
         k: obstacle_l_dict[k] 
