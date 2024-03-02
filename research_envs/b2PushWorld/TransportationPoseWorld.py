@@ -283,16 +283,11 @@ class TransportationWorld:
             1.2*(self.obj.obj_radius + 2*self.agent.agent_radius))
         self.obj.obj_rigid_body.angle = random.uniform(0, 2*np.pi)
 
-        x_lim = [
-            self.obj.obj_rigid_body.position.x - self.max_obj_dist*0.7071,
-            self.obj.obj_rigid_body.position.x + self.max_obj_dist*0.7071
-        ]
-        y_lim = [
-            self.obj.obj_rigid_body.position.y - self.max_obj_dist*0.7071,
-            self.obj.obj_rigid_body.position.y + self.max_obj_dist*0.7071
-        ]
-        self.agent.agent_rigid_body.position = self.gen_non_overlapping_position_in_limit(
-            self.agent.agent_radius*1.2, x_lim, y_lim)
+        # Intitialize agent in obj_radius + agent_radius distance from the object
+        theta = random.uniform(0, 2*np.pi)
+        v = b2Vec2(np.cos(theta), np.sin(theta))
+        v = v * (self.obj.obj_radius + 1.1*self.agent.agent_radius)
+        self.agent.agent_rigid_body.position = self.obj.obj_rigid_body.position + v
 
     # ----------- Laser Sensor -----------
     def get_laser_readings(self):
