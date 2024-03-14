@@ -100,13 +100,17 @@ env = TransportationEnv(config)
 model = SAC.load('model_ckp/'+exp_name+'/best_model')
 print(model.policy)
 
-capsule_width_l = np.linspace(8, 15, 8)
-ep_per_width = 500
+capsule_width_l = list(np.linspace(16, 25, 10))
+ep_per_width = 1000
 
 scene_buffer = CvDrawBuffer(window_name="Simulation", resolution=(1024,1024))
 render_bool = False
 
 res_d = {'capsule_width': [], 'success': [], 'time_steps': [], 'acc_reward': []}
+
+def adjust_obs(obs):
+    obs[-1] = 15.0 / env.max_goal_dist
+    return obs
 
 for w in tqdm(capsule_width_l):
     env.corridor_width_range = (w, w)
@@ -115,6 +119,7 @@ for w in tqdm(capsule_width_l):
         obs, info = env.reset()
         acc_reward = 0
         while True:
+            obs = adjust_obs(obs)
             action, _states = model.predict(obs, deterministic=True)
             obs, reward, terminated, truncated, info = env.step(action)
             acc_reward += reward
@@ -129,7 +134,7 @@ for w in tqdm(capsule_width_l):
 df = pd.DataFrame(res_d)
 
 # Create dir 
-if not os.path.exists('eval_results'): 
-    os.makedirs('eval_results') 
+if not os.path.exists('eval_results_8_25'): 
+    os.makedirs('eval_results_8_25') 
 
-df.to_csv('eval_results/' + exp_name + '.csv', index=False)
+df.to_csv('eval_results_8_25/' + exp_name + '.csv', index=False)

@@ -65,8 +65,8 @@ def adjusted_world_reset(self):
         self.agent.agent_radius*1.2, x_lim, y_lim)
 
     sampled_pos = self.gen_non_overlapping_position(obj_goal_init_slack)
-    self.goal['pos'].x = 90.0
-    self.goal['pos'].y = 90.0
+    self.goal['pos'].x = 140.0
+    self.goal['pos'].y = 56.0
     self.goal['angle'] = random.uniform(0, 2*np.pi)
 
 def adjusted_check_death(self):
