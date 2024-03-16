@@ -12,6 +12,7 @@ from research_envs.cv_buffer.CvDrawBuffer import CvDrawBuffer
 
 from Box2D import b2Vec2, b2Transform
 import copy
+import random
 
 import cv2
 import numpy as np
@@ -86,23 +87,6 @@ def render():
 obj_id = int(sys.argv[1])
 exp_name = 'obj_' + str(obj_id)
 
-# config = TransportationEnvConfig(
-#     world_config= TransportationWorldConfig(
-#         obstacle_l = [],
-#         object_l=[object_desc_dict[obj_id]],
-#         n_rays = 0,
-#         agent_type = 'continuous',
-#         max_force_length=5.0,
-#         min_force_length=0.1,
-#         goal_tolerance={'pos':2, 'angle':np.pi/18},
-#         max_obj_dist=10.0
-#     ),
-#     max_steps = 500,
-#     previous_obs_queue_len = 0,
-#     reward_scale=10.0,
-#     corridor_width_range = (12.0, 12.0)
-# )
-
 config = TransportationEnvConfig(
     world_config= TransportationWorldConfig(
         obstacle_l = [],
@@ -133,11 +117,11 @@ env.world.object_collided = 0
 
 env.world.goal['pos'].x = 55
 env.world.goal['pos'].y = 25
-env.world.goal['angle'] = np.deg2rad(40)
+env.world.goal['angle'] = random.uniform(0, 2*np.pi)#np.deg2rad(40)
 
 env.world.obj = env.world.obj_l[0]
 env.world.obj.obj_rigid_body.position = (15, 25)
-env.world.obj.obj_rigid_body.angle = np.deg2rad(200)
+env.world.obj.obj_rigid_body.angle = random.uniform(0, 2*np.pi)#np.deg2rad(200)
 
 # env.world.agent.agent_rigid_body.position = (10, 25)
 x_lim = [
@@ -148,8 +132,12 @@ y_lim = [
     env.world.obj.obj_rigid_body.position.y - env.world.max_obj_dist*0.7071,
     env.world.obj.obj_rigid_body.position.y + env.world.max_obj_dist*0.7071
 ]
-env.world.agent.agent_rigid_body.position = env.world.gen_non_overlapping_position_in_limit(
-    env.world.agent.agent_radius*1.2, x_lim, y_lim)
+# env.world.agent.agent_rigid_body.position = env.world.gen_non_overlapping_position_in_limit(
+#     env.world.agent.agent_radius*1.2, x_lim, y_lim)
+theta = random.uniform(0, 2*np.pi)
+v = b2Vec2(np.cos(theta), np.sin(theta))
+v = v * (env.world.obj.obj_radius + 1.1*env.world.agent.agent_radius)
+env.world.agent.agent_rigid_body.position = env.world.obj.obj_rigid_body.position + v
 
 env.step_count = 0
 env.corridor_width = 10.0
@@ -161,7 +149,7 @@ trajectory = []
 trajectory_robot = []
 
 
-render()
+# render()
 acc_reward = 0
 success_l = []
 while True:
@@ -178,7 +166,7 @@ while True:
     action, _states = model.predict(obs, deterministic=True)
     obs, reward, terminated, truncated, info = env.step(action)
     acc_reward += reward
-    render()
+    # render()
     if terminated or truncated:
         success_l.append(info['is_success'])
         print()
@@ -187,7 +175,16 @@ while True:
         print('Success rate: ', sum(success_l) / len(success_l))
         break
 
-draw_buffer = CvDrawBuffer(window_name="Trajectory", resolution=(1024,1024))
+trajectory.append({
+    'pos': b2Vec2(env.world.obj.obj_rigid_body.position),
+    'angle': env.world.obj.obj_rigid_body.angle
+})
+
+trajectory_robot.append({
+    'pos': b2Vec2(env.world.agent.agent_rigid_body.position)
+})
+
+# SAVE THE IMAGE:
 screen = 255 * np.ones(shape=(
     env.world.screen_height, int(env.world.screen_width*1.5), 3), dtype=np.uint8)
 
@@ -202,6 +199,12 @@ points = (points * env.world.pixels_per_meter).astype(int)
 points = points.reshape((-1, 1, 2))
 # Draw the capsule
 cv2.polylines(screen, [points], isClosed=True, color=(36, 21, 0), thickness=3)
+
+# Draw the goal
+env.world.obj.DrawInPose(
+    env.world.goal['pos'], env.world.goal['angle'], env.world.pixels_per_meter, screen, (151, 207, 100), -1)
+DrawFirstVerticeInPose(
+    env.world.obj, env.world.goal['pos'], env.world.goal['angle'], env.world.pixels_per_meter, screen, (36, 21, 0), -1, 10)
 
 # Draw the first
 env.world.obj.DrawInPose(
@@ -277,15 +280,15 @@ cv2.circle(
 
 # Draw the last
 env.world.obj.DrawInPose(
-    env.world.goal['pos'], env.world.goal['angle'], env.world.pixels_per_meter, screen, (151, 207, 100), -1)
+    trajectory[-1]['pos'], trajectory[-1]['angle'], env.world.pixels_per_meter, screen, (82, 99, 238), -1)
 DrawFirstVerticeInPose(
-    env.world.obj, env.world.goal['pos'], env.world.goal['angle'], env.world.pixels_per_meter, screen, (36, 21, 0), -1, 10)
+    env.world.obj, trajectory[-1]['pos'], trajectory[-1]['angle'], env.world.pixels_per_meter, screen, (36, 21, 0), -1, 10)
 
-# cv2.circle(
-#     screen, 
-#     env.world.worldToScreen(trajectory_robot[-1]['pos']), 
-#     int(env.world.agent.agent_radius*env.world.pixels_per_meter), 
-#     color=(214, 167, 63), thickness=-1)
+cv2.circle(
+    screen, 
+    env.world.worldToScreen(trajectory_robot[-1]['pos']), 
+    int(env.world.agent.agent_radius*env.world.pixels_per_meter), 
+    color=(214, 167, 63), thickness=-1)
 
 # Draw the trajectory as a curve
 c = (36, 21, 0)
@@ -320,8 +323,8 @@ def DrawInPose(self, world_pos, angle, pixels_per_meter, image, color, thickness
         cv2.polylines(image, [np.array(vertices)], isClosed=True, color=color, thickness=thickness)
 
 # Center the image on the capsule
-s = 2
-w = 12
+s = 0.5
+w = 10
 start_pos = env.start_obj_pos
 end_pos = env.world.goal['pos']
 x_rng = [
@@ -344,4 +347,117 @@ y_rng_img = [
 
 screen = screen[y_rng_img[0]:y_rng_img[1], x_rng_img[0]:x_rng_img[1]]
 # Save img in file img.png
-cv2.imwrite('img.png', screen)
+cv2.imwrite('capsule_videos/img_{}.png'.format(exp_name), screen)
+
+
+# SAVE THE VIDEO
+
+# Write the frames to a video
+# Fixed Capsule
+# What changes is the object position and angle
+# And the robot position
+
+frame_l = []
+
+# trajectory
+# trajectory_robot
+for i in range(len(trajectory)):
+    # Draw the capsule
+    screen = 255 * np.ones(shape=(
+        env.world.screen_height, int(env.world.screen_width*1.5), 3), dtype=np.uint8)
+
+    # Draw the capsule
+    capsule_line = env.capsule_line
+    capsule = capsule_line.buffer(env.corridor_width)
+    # Convert the Shapely object to a list of points
+    points = np.array([list(point) for point in capsule.exterior.coords])
+    # Scale the points to match the pixels_per_meter ratio
+    points = (points * env.world.pixels_per_meter).astype(int)
+    # Reshape the points to the format expected by cv2.polylines
+    points = points.reshape((-1, 1, 2))
+    # Draw the capsule
+    cv2.polylines(screen, [points], isClosed=True, color=(36, 21, 0), thickness=3)
+
+    # Draw the goal
+    env.world.obj.DrawInPose(
+        env.world.goal['pos'], env.world.goal['angle'], env.world.pixels_per_meter, screen, (151, 207, 100), -1)
+    DrawFirstVerticeInPose(
+        env.world.obj, env.world.goal['pos'], env.world.goal['angle'], env.world.pixels_per_meter, screen, (36, 21, 0), -1, 10)
+
+    # Draw the current object
+    env.world.obj.DrawInPose(
+        trajectory[i]['pos'], trajectory[i]['angle'], env.world.pixels_per_meter, screen, (82, 99, 238), -1)
+    DrawFirstVerticeInPose(
+        env.world.obj, trajectory[i]['pos'], trajectory[i]['angle'], env.world.pixels_per_meter, screen, (36, 21, 0), -1, 10)
+
+    cv2.circle(
+        screen, 
+        env.world.worldToScreen(trajectory_robot[i]['pos']), 
+        int(env.world.agent.agent_radius*env.world.pixels_per_meter), 
+        color=(214, 167, 63), thickness=-1)
+    
+    # Draw the trajectory as a curve up to i
+    c = (36, 21, 0)
+    thickness = 2
+    for j in range(i):
+        if j == 0 or j == len(trajectory)-1: continue
+        cv2.line(
+            screen, 
+            env.world.worldToScreen(trajectory[j-1]['pos']), 
+            env.world.worldToScreen(trajectory[j]['pos']), 
+            color=c, thickness=thickness)
+    
+
+    # Center the image on the capsule
+    # s = 2
+    # w = 12
+    start_pos = env.start_obj_pos
+    end_pos = env.world.goal['pos']
+    x_rng = [
+        start_pos.x - w - s,
+        end_pos.x + w + s
+    ]
+    x_rng_img = [
+        env.world.worldToScreen((x_rng[0], 0))[0],
+        env.world.worldToScreen((x_rng[1], 0))[0]
+    ]
+
+    y_rng = [
+        start_pos.y - w - s,
+        end_pos.y + w + s
+    ]
+    y_rng_img = [
+        env.world.worldToScreen((0, y_rng[0]))[1],
+        env.world.worldToScreen((0, y_rng[1]))[1]
+    ]
+
+    screen = screen[y_rng_img[0]:y_rng_img[1], x_rng_img[0]:x_rng_img[1]]
+
+    # # screen = np.transpose(screen, (1, 0, 2))
+    # aux_screen = np.zeros(shape=screen.shape, dtype=np.uint8)
+    # aux_screen[:,:,0] = screen[:,:,2]
+    # aux_screen[:,:,1] = screen[:,:,1]
+    # aux_screen[:,:,2] = screen[:,:,0]
+    # Increase the brightness by 50
+    screen = cv2.convertScaleAbs(screen, alpha=1.0, beta=0)
+    frame_l.append(screen)
+
+# Save the video
+fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+f_name = 'capsule_videos/video_' + exp_name + '.mp4'
+out = cv2.VideoWriter(f_name, fourcc, 10, (frame_l[0].shape[1], frame_l[0].shape[0]))
+for frame in frame_l:
+    out.write(frame)
+out.release()
+
+
+
+# def save_video(frame_l):
+#     global video_counter
+#     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+#     f_name = 'videos/video_' + exp_name + '.mp4'
+#     out = cv2.VideoWriter(f_name, fourcc, 20, (frame_l[0].shape[1], frame_l[0].shape[0]))
+#     for frame in frame_l:
+#         frame = frame.astype(np.uint8)
+#         out.write(frame)
+#     out.release()
